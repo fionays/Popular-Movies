@@ -1,0 +1,72 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.nano.android.popularmovies.DetailActivityFragment"
+    android:orientation="vertical"
+    android:weightSum="4">
+
+
+    <TextView
+        android:id="@+id/title"
+        android:text="@string/hello_world"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_gravity="top"
+        android:background="@color/bright_foreground_disabled_material_light"
+        android:textSize="30sp"
+        android:gravity="center_vertical"
+        android:padding="@dimen/abc_text_size_caption_material"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3">
+
+
+        <ImageView
+            android:id="@+id/poster"
+            android:layout_width="@dimen/poster_height_mobile"
+            android:layout_height="@dimen/poster_width_mobile"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="@dimen/element_vertical_margin"/>
+
+        <TextView
+            android:id="@+id/release_date"
+            android:layout_width="@dimen/release_width_mobile"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/poster"
+            android:layout_marginTop="@dimen/element_vertical_margin"
+            android:layout_marginLeft="@dimen/element_horizontal_margin"
+            android:layout_marginRight="@dimen/element_horizontal_margin"
+            android:textSize="15sp"/>
+
+        <TextView
+            android:id="@+id/vote_average"
+            android:layout_width="@dimen/vote_width_mobile"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/release_date"
+            android:layout_toRightOf="@+id/poster"
+            android:layout_margin="@dimen/element_horizontal_margin"/>
+
+        <ScrollView
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_below="@+id/poster"
+            android:layout_margin="@dimen/element_vertical_margin">
+
+            <TextView
+                android:id="@+id/overview"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent" />
+        </ScrollView>
+
+
+    </RelativeLayout>
+
+
+</LinearLayout>

@@ -1,0 +1,14 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!--Customized margins-->
+    <dimen name="element_horizontal_margin">16dp</dimen>
+    <dimen name="element_vertical_margin">10dp</dimen>
+
+    <dimen name="poster_height_mobile">150dp</dimen>
+    <dimen name="poster_width_mobile">150dp</dimen>
+    <dimen name="release_width_mobile">200dp</dimen>
+    <dimen name="vote_width_mobile">200dp</dimen>
+</resources>
