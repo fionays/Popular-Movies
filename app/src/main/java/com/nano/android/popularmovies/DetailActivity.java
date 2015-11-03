@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -62,11 +63,13 @@ public class DetailActivity extends AppCompatActivity {
 
         private final String LOG_CAT = DetailFragment.class.getSimpleName();
         private MovieHolder theMovie;
+
         @Bind(R.id.title)TextView title;
         @Bind(R.id.release_date)TextView release;
         @Bind(R.id.vote_average)TextView vote;
         @Bind(R.id.overview)TextView overView;
         @Bind(R.id.poster)ImageView poster;
+        @Bind(R.id.trailer_reviews_container)LinearLayout trailersReviewsContainer;
 
         public DetailFragment() {}
 
@@ -79,6 +82,7 @@ public class DetailActivity extends AppCompatActivity {
             Bundle bundle = getArguments();
             if (bundle != null) {
                 theMovie = bundle.getParcelable("MovieHolder");
+
 
                 //TextView title = (TextView)rootView.findViewById(R.id.title);
                 //ImageView poster = (ImageView)rootView.findViewById(R.id.poster);
@@ -101,7 +105,7 @@ public class DetailActivity extends AppCompatActivity {
         public void onStart() {
             super.onStart();
             FetchDataTask fetchDataTask = new FetchDataTask();
-            fetchDataTask.execute("API_KEY");
+            fetchDataTask.execute("");
         }
 
         /**
@@ -236,7 +240,34 @@ public class DetailActivity extends AppCompatActivity {
                 return null;
             }
             @Override
-            protected void onPostExecute(MovieHolder results) {}
+            protected void onPostExecute(MovieHolder results) {
+                // Adding trailers and reviews programmatically
+                if (results.trailers.size() != 0) {
+                    // Clear all existing views in it
+                    trailersReviewsContainer.removeAllViews();
+
+                    // Add trailers
+                    for (final MovieHolder.Trailer video : theMovie.trailers){
+                        View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_item, null);
+                        // Set the trailer title
+                        TextView trailerTitle = (TextView) trailerItem.findViewById(R.id.movie_trailer_name);
+                        trailerTitle.setText(video.trailerName);
+
+                        // Add OnClickListener to the view
+                        trailerItem.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                // Start an Intent to open the trailer on Youtube
+                                //playTrailerIntent(video.key);
+                            }
+                        });
+
+                        // Add this trailer to the end of container
+                        trailersReviewsContainer.addView(trailerItem);
+                    }
+                    // Add reviews
+                }
+            }
         }
     }
 }

@@ -19,6 +19,7 @@
     <string name="pref_sort_default" translateble = "false">popularity.desc</string>
     <string name="pref_sort_key" translateble = "false">sort_by</string>
 
-
+    <!--Trailers and Reviews-->
+    <string name="movie_trailer_play_button">Movie Trailer Play Button</string>A
 
 </resources>
