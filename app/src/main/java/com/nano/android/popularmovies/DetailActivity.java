@@ -4,6 +4,8 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -28,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -113,6 +116,33 @@ public class DetailActivity extends AppCompatActivity {
          */
         public class FetchDataTask extends AsyncTask<String, Void, MovieHolder> {
             private final String TASK_LOG_TAG = FetchDataTask.class.getSimpleName();
+
+            /**
+             * Helper method: Start Youtube to play trailer using Intent
+             * @param key  The source of the trailer
+             */
+            private void playTrailerIntent(String key) {
+
+                final String VALUE = "v";
+                final String BASE_YOUTUBE_URI = "http://www.youtube.com/watch?";
+                Uri builtUri = Uri.parse(BASE_YOUTUBE_URI).buildUpon()
+                        .appendQueryParameter(VALUE, key)
+                        .build();
+
+                // Build the intent
+                Intent playIntent = new Intent(Intent.ACTION_VIEW, builtUri);
+
+                // Verify it resolves
+                PackageManager packageManager = getActivity().getPackageManager();
+                // TODO: Why the example in documentation set flag = 0?
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(playIntent,PackageManager.MATCH_DEFAULT_ONLY);
+                boolean isIntentSafe = activities.size() > 0;
+
+                // Start an activity if it is safe
+                if (isIntentSafe) {
+                    startActivity(playIntent);
+                }
+            }
 
             /**
              * Extract trailers fields: "movie_id", "trailer_name", "key"
@@ -258,7 +288,7 @@ public class DetailActivity extends AppCompatActivity {
                             @Override
                             public void onClick(View view) {
                                 // Start an Intent to open the trailer on Youtube
-                                //playTrailerIntent(video.key);
+                                playTrailerIntent(video.key);
                             }
                         });
 
