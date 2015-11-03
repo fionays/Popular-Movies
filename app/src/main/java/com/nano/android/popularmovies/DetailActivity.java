@@ -4,8 +4,11 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +16,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -83,5 +97,146 @@ public class DetailActivity extends AppCompatActivity {
             return rootView;
         }
 
+        @Override
+        public void onStart() {
+            super.onStart();
+            FetchDataTask fetchDataTask = new FetchDataTask();
+            fetchDataTask.execute("API_KEY");
+        }
+
+        /**
+         * An inner class to fetch trailers and reviews for this movie
+         */
+        public class FetchDataTask extends AsyncTask<String, Void, MovieHolder> {
+            private final String TASK_LOG_TAG = FetchDataTask.class.getSimpleName();
+
+            /**
+             * Extract trailers fields: "movie_id", "trailer_name", "key"
+             * @param trailerJsonStr String representation of JSON.
+             * @return               A MovieHolder Object with zero or more trailers
+             * @throws JSONException
+             */
+            private void getTrailersFromJson(String trailerJsonStr) throws JSONException {
+
+                final String MOVIE_ID = "id";
+                final String TRAILER_NAME = "name";
+                final String KEY = "key";
+                final String RESULTS = "results";
+                // Convert JSON string to JSON object
+                JSONObject jsonObject = new JSONObject(trailerJsonStr);
+                JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
+
+                long movieId = jsonObject.getLong(MOVIE_ID);
+
+                int count = resultArray.length();
+                for ( int i = 0; i < count; i ++) {
+                    // Get JSON object for each trailer
+                    JSONObject trailerJson = resultArray.getJSONObject(i);
+
+                    String name = trailerJson.getString(TRAILER_NAME);
+                    String key = trailerJson.getString(KEY);
+
+                    MovieHolder.Trailer trailer = new MovieHolder.Trailer(movieId, name, key);
+                    // Add each trailer to the trailers List.
+                    theMovie.trailers.add(trailer);
+                }
+
+                // Test
+                Log.v(TASK_LOG_TAG, "The number of trailers: " + count);
+                for (MovieHolder.Trailer t : theMovie.trailers) {
+                    Log.v(TASK_LOG_TAG, "Trailer infor: " + t);
+                }
+            }
+
+            /**
+             * Fetch trailers as well as reviews in a single AsyncTask
+             * @param params  The API_KEY
+             * @return        The MovieHolder object with trailers and reviews
+             */
+            @Override
+            protected MovieHolder doInBackground(String... params) {
+                // Return null if there is no API_KEY
+                if (params.length == 0) {return null;}
+
+                final String BASE_URL = "http://api.themoviedb.org/3/movie";
+                final String API_KEY = "api_key";
+                final String VIDEOS = "videos";
+                final String REVIEWS = "reviews";
+                final long MOVIE_ID = theMovie.movieId;
+                String trailersJsonStr = null;
+                String reviewsJsonStr = null;
+
+                /*******************HTTP request for trailers**********************/
+                // Step1: Make HTTP request.
+                HttpURLConnection urlConnection = null;
+                BufferedReader bufferedReader = null;
+                try {
+                    // Construct URI for trailer query
+                    final String TRAILER_URL = BASE_URL + "/" + MOVIE_ID + "/" + VIDEOS;
+                    Uri builtTrailerUri = Uri.parse(TRAILER_URL).buildUpon()
+                            .appendQueryParameter(API_KEY, params[0])
+                            .build();
+
+                    Log.v(TASK_LOG_TAG, "Built trailer URL " + builtTrailerUri.toString());
+
+                    // Construct URL
+                    URL trailerURL = new URL(builtTrailerUri.toString());
+
+                    // Open the connection
+                    urlConnection = (HttpURLConnection)trailerURL.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.connect();
+
+                    // Step 2; Read response from input stream(string of JSON)
+                    InputStream inputStream = urlConnection.getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+
+                    if(inputStream == null) {return  null;}
+                    bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line;
+
+                    // Read input stream into string
+                    while ((line = bufferedReader.readLine() ) != null) {
+                        buffer.append(line + "\n");
+                    }
+
+                    if(buffer == null) {return null;}
+
+                    trailersJsonStr = buffer.toString();
+                    Log.v(TASK_LOG_TAG, "Trailer JSON String: " + trailersJsonStr);
+                } catch(IOException e) {
+                    Log.e(TASK_LOG_TAG, e.getMessage(), e);
+                    e.printStackTrace();
+                    return null;
+                } finally {
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+
+                    if (bufferedReader != null) {
+                        try {
+                            bufferedReader.close();
+                        } catch (IOException e) {
+                            Log.e(TASK_LOG_TAG, e.getMessage(), e);
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                /*******************HTTP request for Reviews**********************/
+                // Extract trailers and reviews from JSON string and add them to the movie
+                try {
+                    getTrailersFromJson(trailersJsonStr);
+                    return theMovie;
+
+                } catch (JSONException e) {
+                    Log.e(TASK_LOG_TAG, e.getMessage(), e);
+                    e.printStackTrace();
+                }
+
+                return null;
+            }
+            @Override
+            protected void onPostExecute(MovieHolder results) {}
+        }
     }
 }

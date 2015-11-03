@@ -36,7 +36,7 @@ import java.util.ArrayList;
 
         private static final String LOG_TAG = MovieFragment.class.getSimpleName();
         private static final String KEY = "movie";
-        private static final String API_KEY = "Your API KEY";
+        private static final String API_KEY = "API_KEY";
         private ImageAdapter imageAdapter;
 
         private ArrayList<MovieHolder> movieList = new ArrayList<MovieHolder>();
@@ -125,7 +125,7 @@ import java.util.ArrayList;
         /**
          * Extract data we need:
          *                     "original_title", "poster_path", "overview",
-         *                      "vote_average", "release_date", "id".
+         *                      "vote_average", "release_date", "id", "Trailer"
          * @param movieJsonStr  String representation of complete movie in JSON format
          * @return              An array of MovieHolder which is parcelable.
          */
@@ -187,8 +187,7 @@ import java.util.ArrayList;
 
                 // If there is no api_KEY, return null.
                 if(params.length == 0) {return null;}
-                // HTTP request for movie.
-
+                /***************************HTTP request for movie.*************************/
                 //STEP 1: Make HTTP request.
                 HttpURLConnection urlConnection = null;
                 BufferedReader reader = null;
@@ -198,8 +197,9 @@ import java.util.ArrayList;
                 String defaultSortBy = getResources().getString(R.string.pref_sort_default);
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 String sortPref = sharedPref.getString(getString(R.string.pref_sort_key), defaultSortBy);
+
                 try {
-                    // Construct URL for themoviedb query.
+                    // Construct URI for themoviedb movie query.
                     final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
                     final String SORT_BY = "sort_by";
                     final String API_KEY = "api_key";
