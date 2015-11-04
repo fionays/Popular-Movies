@@ -23,6 +23,7 @@ public class MovieHolder implements Parcelable {
      String releaseDate;
      int voteAverage;
      long movieId;
+     boolean favorite;
      List<Trailer> trailers;
      List<Review> reviews;
 
@@ -35,6 +36,7 @@ public class MovieHolder implements Parcelable {
         this.releaseDate = releaseDate;
         this.voteAverage = voteAverage;
         this.movieId = movieId;
+        this.favorite = false;
         trailers = new ArrayList<Trailer>();
         reviews = new ArrayList<Review>();
     }
@@ -47,6 +49,7 @@ public class MovieHolder implements Parcelable {
         releaseDate = in.readString();
         voteAverage = in.readInt();
         movieId = in.readLong();
+        favorite = in.readByte() != 0; // favorite == true if byte != 0
         trailers = in.readArrayList(Trailer.class.getClassLoader());
         reviews = in.readArrayList(Review.class.getClassLoader());
     }
@@ -65,6 +68,7 @@ public class MovieHolder implements Parcelable {
         dest.writeString(releaseDate);
         dest.writeInt(voteAverage);
         dest.writeLong(movieId);
+        dest.writeByte((byte) (favorite ? 1 : 0)); // If favorite == true, byte == 1
         dest.writeTypedList(trailers);
         dest.writeTypedList(reviews);
     }

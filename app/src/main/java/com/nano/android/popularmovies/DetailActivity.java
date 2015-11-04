@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -73,6 +74,7 @@ public class DetailActivity extends AppCompatActivity {
         @Bind(R.id.overview)TextView overView;
         @Bind(R.id.poster)ImageView poster;
         @Bind(R.id.trailer_reviews_container)LinearLayout trailersReviewsContainer;
+        @Bind(R.id.favorite_button)CheckBox favorite;
 
 
         public DetailFragment() {}
