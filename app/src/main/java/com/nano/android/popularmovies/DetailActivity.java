@@ -74,6 +74,7 @@ public class DetailActivity extends AppCompatActivity {
         @Bind(R.id.poster)ImageView poster;
         @Bind(R.id.trailer_reviews_container)LinearLayout trailersReviewsContainer;
 
+
         public DetailFragment() {}
 
         @Override
@@ -115,6 +116,7 @@ public class DetailActivity extends AppCompatActivity {
          * An inner class to fetch trailers and reviews for this movie
          */
         public class FetchDataTask extends AsyncTask<String, Void, MovieHolder> {
+
             private final String TASK_LOG_TAG = FetchDataTask.class.getSimpleName();
 
             /**
@@ -145,7 +147,7 @@ public class DetailActivity extends AppCompatActivity {
             }
 
             /**
-             * Extract trailers fields: "movie_id", "trailer_name", "key"
+             * Extract trailers fields: "movie_id", "trailer_name", "key". Add them to the movie.
              * @param trailerJsonStr String representation of JSON.
              * @return               A MovieHolder Object with zero or more trailers
              * @throws JSONException
@@ -183,6 +185,44 @@ public class DetailActivity extends AppCompatActivity {
             }
 
             /**
+             * Extract review fields: "movie_id", "author", "content". Add them to the movie.
+             * @param reviewsJsonStr String format of JSON
+             * @throws JSONException
+             */
+            private void getReviewsFromJson(String reviewsJsonStr) throws JSONException {
+
+                final String MOVIE_ID = "id";
+                final String RESULTS = "results";
+                final String AUTHOR = "author";
+                final String CONTENT = "content";
+
+                // Convert JSON String to JSON
+                JSONObject jsonObject = new JSONObject(reviewsJsonStr);
+
+                long movieID = jsonObject.getLong(MOVIE_ID);
+                JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
+                int count = resultArray.length();
+
+                for (int i = 0; i < count; i ++) {
+                    // Get JSON object for each review
+                    JSONObject reviewJson = resultArray.getJSONObject(i);
+
+                    String author = reviewJson.getString(AUTHOR);
+                    String content = reviewJson.getString(CONTENT);
+
+                    MovieHolder.Review review = new MovieHolder.Review(movieID, author, content);
+
+                    theMovie.reviews.add(review);
+                }
+
+                // Test
+                Log.v(TASK_LOG_TAG, "The number of reviews: " + count);
+                for (MovieHolder.Review r : theMovie.reviews) {
+                    Log.v(TASK_LOG_TAG, "Reviews infor: " + r);
+                }
+            }
+
+            /**
              * Fetch trailers as well as reviews in a single AsyncTask
              * @param params  The API_KEY
              * @return        The MovieHolder object with trailers and reviews
@@ -200,10 +240,11 @@ public class DetailActivity extends AppCompatActivity {
                 String trailersJsonStr = null;
                 String reviewsJsonStr = null;
 
-                /*******************HTTP request for trailers**********************/
                 // Step1: Make HTTP request.
                 HttpURLConnection urlConnection = null;
                 BufferedReader bufferedReader = null;
+
+                /*******************HTTP request for trailers**********************/
                 try {
                     // Construct URI for trailer query
                     final String TRAILER_URL = BASE_URL + "/" + MOVIE_ID + "/" + VIDEOS;
@@ -257,9 +298,67 @@ public class DetailActivity extends AppCompatActivity {
                     }
                 }
                 /*******************HTTP request for Reviews**********************/
+
+                try {
+                    // Construct URI for reviews query.
+                    final String REVIEW_URL = BASE_URL + "/" + MOVIE_ID + "/" + REVIEWS;
+                    Uri builtReviewUri = Uri.parse(REVIEW_URL).buildUpon()
+                            .appendQueryParameter(API_KEY, params[0])
+                            .build();
+
+                    Log.v(TASK_LOG_TAG, "Build review URI: " + builtReviewUri.toString());
+
+                    // Construct URL
+                    URL reviewURL = new URL(builtReviewUri.toString());
+
+                    // Open connection
+                    urlConnection = (HttpURLConnection)reviewURL.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.connect();
+
+                    // Step 2: Read response from input stream (String of JSON)
+                    InputStream inputStream = urlConnection.getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+
+                    if (inputStream == null) {return  null;}
+
+                    bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line;
+
+                    // Read input stream into string;
+                    while((line = bufferedReader.readLine()) != null) {
+                        buffer.append(line + "\n");
+                    }
+
+                    if (buffer == null) {return null;}
+
+                    // Get JSON String out of buffer
+                    reviewsJsonStr = buffer.toString();
+
+                    Log.v(TASK_LOG_TAG, "Reviews JSON string: " + reviewsJsonStr);
+                } catch (IOException e) {
+                    Log.e(TASK_LOG_TAG, e.getMessage(), e);
+                    e.printStackTrace();
+                    return  null;
+                } finally {
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+                    if (bufferedReader != null) {
+                        try {
+                            bufferedReader.close();
+                        } catch (IOException e) {
+                            Log.e(TASK_LOG_TAG, e.getMessage(), e);
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+
                 // Extract trailers and reviews from JSON string and add them to the movie
                 try {
                     getTrailersFromJson(trailersJsonStr);
+                    getReviewsFromJson(reviewsJsonStr);
                     return theMovie;
 
                 } catch (JSONException e) {
@@ -272,15 +371,15 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(MovieHolder results) {
                 // Adding trailers and reviews programmatically
-                if (results.trailers.size() != 0) {
-                    // Clear all existing views in it
-                    trailersReviewsContainer.removeAllViews();
+                // Clear all existing views in it
+                trailersReviewsContainer.removeAllViews();
 
-                    // Add trailers
-                    for (final MovieHolder.Trailer video : theMovie.trailers){
+                // Add trailers
+                if (results.trailers.size() != 0) {
+                    for (final MovieHolder.Trailer video : theMovie.trailers) {
                         View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_item, null);
                         // Set the trailer title
-                        TextView trailerTitle = (TextView) trailerItem.findViewById(R.id.movie_trailer_name);
+                        TextView trailerTitle = (TextView)trailerItem.findViewById(R.id.movie_trailer_name);
                         trailerTitle.setText(video.trailerName);
 
                         // Add OnClickListener to the view
@@ -295,8 +394,24 @@ public class DetailActivity extends AppCompatActivity {
                         // Add this trailer to the end of container
                         trailersReviewsContainer.addView(trailerItem);
                     }
-                    // Add reviews
                 }
+
+                // Add reviews
+                if (results.reviews.size() != 0) {
+                    for (final MovieHolder.Review review : theMovie.reviews) {
+                        View reviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.review_item, null);
+
+                        TextView reviewAuthor = (TextView)reviewItem.findViewById(R.id.review_author);
+                        TextView reviewContent = (TextView)reviewItem.findViewById(R.id.review_content);
+                        reviewAuthor.setText(review.author);
+                        reviewContent.setText(review.content);
+
+                        // Add this review to the end of container
+                        trailersReviewsContainer.addView(reviewItem);
+
+                    }
+                }
+
             }
         }
     }

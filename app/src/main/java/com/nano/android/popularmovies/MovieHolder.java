@@ -24,7 +24,7 @@ public class MovieHolder implements Parcelable {
      int voteAverage;
      long movieId;
      List<Trailer> trailers;
-     //List<Review> reviews;
+     List<Review> reviews;
 
     public MovieHolder( String posterPath, String originalTitle, String overview
                     , String releaseDate, int voteAverage, long movieId) {
@@ -36,7 +36,7 @@ public class MovieHolder implements Parcelable {
         this.voteAverage = voteAverage;
         this.movieId = movieId;
         trailers = new ArrayList<Trailer>();
-        //reviews = new ArrayList<Review>();
+        reviews = new ArrayList<Review>();
     }
 
     private MovieHolder(Parcel in) {
@@ -48,7 +48,7 @@ public class MovieHolder implements Parcelable {
         voteAverage = in.readInt();
         movieId = in.readLong();
         trailers = in.readArrayList(Trailer.class.getClassLoader());
-        //reviews = in.readArrayList(Review.class.getClassLoader());
+        reviews = in.readArrayList(Review.class.getClassLoader());
     }
 
     @Override
@@ -66,6 +66,7 @@ public class MovieHolder implements Parcelable {
         dest.writeInt(voteAverage);
         dest.writeLong(movieId);
         dest.writeTypedList(trailers);
+        dest.writeTypedList(reviews);
     }
 
     public static final Parcelable.Creator<MovieHolder> CREATOR = new Creator<MovieHolder>() {
@@ -91,7 +92,10 @@ public class MovieHolder implements Parcelable {
                 + movieId + "\n";
     }
 
-    // Inner Trailer class
+    /**
+     * Inner Trailer class.
+      */
+
     public static class Trailer implements Parcelable{
         long movieId;
         String trailerName;
@@ -133,8 +137,10 @@ public class MovieHolder implements Parcelable {
         }
     }
 
-    // Inner Review class
-    public static class Review {
+    /**
+     * Inner Review class.
+     */
+    public static class Review implements Parcelable{
         long movieId;
         String author;
         String content;
@@ -143,6 +149,35 @@ public class MovieHolder implements Parcelable {
             this.movieId = movieId;
             this.author = author;
             this.content = content;
+        }
+
+        private Review(Parcel in) {
+            movieId = in.readLong();
+            author = in.readString();
+            content = in.readString();
+        }
+        @Override
+        public int describeContents() {return 0;}
+
+        @Override
+        public void writeToParcel(Parcel dest, int flag) {
+            dest.writeLong(movieId);
+            dest.writeString(author);
+            dest.writeString(content);
+        }
+
+        public static final Parcelable.Creator<Review> CREATOR = new Parcelable.Creator<Review>() {
+
+            @Override
+            public Review createFromParcel(Parcel src) {return new Review(src);}
+            @Override
+            public Review[] newArray(int size) {return new Review[size];}
+        };
+
+        // For test
+        @Override
+        public String toString() {
+            return movieId + "\n" + author + "\n" + content;
         }
     }
 }
