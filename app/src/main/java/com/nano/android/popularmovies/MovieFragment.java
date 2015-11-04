@@ -36,7 +36,7 @@ import java.util.ArrayList;
 
         private static final String LOG_TAG = MovieFragment.class.getSimpleName();
         private static final String KEY = "movie";
-        private static final String API_KEY = "";
+        private static final String API_KEY = BuildConfig.THE_MOVIE_DB_API_KEY;
         private ImageAdapter imageAdapter;
 
         private ArrayList<MovieHolder> movieList = new ArrayList<MovieHolder>();

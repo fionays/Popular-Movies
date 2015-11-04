@@ -109,7 +109,7 @@ public class DetailActivity extends AppCompatActivity {
         public void onStart() {
             super.onStart();
             FetchDataTask fetchDataTask = new FetchDataTask();
-            fetchDataTask.execute("");
+            fetchDataTask.execute(BuildConfig.THE_MOVIE_DB_API_KEY);
         }
 
         /**
