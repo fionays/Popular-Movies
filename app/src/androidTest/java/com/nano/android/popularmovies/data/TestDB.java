@@ -1,5 +1,6 @@
 package com.nano.android.popularmovies.data;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
@@ -125,5 +126,103 @@ public class TestDB extends AndroidTestCase {
 
         assertTrue("Error: The database doesn't contain all of the required review entry columns",
                 favColumnHashSet.isEmpty());
+    }
+
+    /*
+        Test read/write from favorite table
+     */
+    public void testFavoriteTable() {
+
+        FavoritedDbHelper dbHelper = new FavoritedDbHelper(this.mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues testValues = TestUtilities.createMadMaxDetailValues();
+
+        // Insert ContentValues into database and get a row ID back
+        long favRowID = db.insert(FavoritedContract.FavoriteEntry.TABLE_NAME, null, testValues);
+        assertTrue("Failure to insert Mad Max movie value!", favRowID != -1);
+
+        // Query the database and receive a cursor back
+        Cursor c = db.query(FavoritedContract.FavoriteEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        assertTrue("Error: No records returned fron the fav query", c.moveToFirst());
+
+        // Validate the data in resulting cursor with the original ContentValues
+        TestUtilities.validateCurrentRecord("Fav Query Validation Failed!", c, testValues);
+
+        assertFalse("Error: More than one record is returned!", c.moveToNext());
+
+        c.close();
+        db.close();
+    }
+
+    /*
+        Test read/write from trailer table
+     */
+    public void testTrailerTable() {
+        FavoritedDbHelper dbHelper = new FavoritedDbHelper(this.mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues testValues = TestUtilities.createTrailerValues();
+
+        // Insert ContentValues into database and get a row ID back
+        long trailerRowID = db.insert(FavoritedContract.TrailerEntry.TABLE_NAME, null, testValues);
+        assertTrue("Failure to insert trailer value!", trailerRowID != -1);
+
+        // Query the database and receive a cursor back
+        Cursor c = db.query(FavoritedContract.TrailerEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        assertTrue("Error: No records returned fron the trailer query", c.moveToFirst());
+
+        // Validate the data in resulting cursor with the original ContentValues
+        TestUtilities.validateCurrentRecord("Trailer Query Validation Failed!", c, testValues);
+
+        assertFalse("Error: More than one record is returned!", c.moveToNext());
+
+        c.close();
+        db.close();
+    }
+
+    /*
+        Test read/write from review table
+     */
+    public void testReviewTable() {
+        FavoritedDbHelper dbHelper = new FavoritedDbHelper(this.mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues testValues = TestUtilities.createReviewValues();
+
+        // Insert ContentValues into database and get a row ID back
+        long reviewRowID = db.insert(FavoritedContract.ReviewEntry.TABLE_NAME, null, testValues);
+        assertTrue("Failure to insert review value!", reviewRowID != -1);
+
+        // Query the database and receive a cursor back
+        Cursor c = db.query(FavoritedContract.ReviewEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+        assertTrue("Error: No records returned fron the review query", c.moveToFirst());
+
+        // Validate the data in resulting cursor with the original ContentValues
+        TestUtilities.validateCurrentRecord("Review Query Validation Failed!", c, testValues);
+
+        assertFalse("Error: More than one record is returned!", c.moveToNext());
+
+        c.close();
+        db.close();
+
     }
 }
