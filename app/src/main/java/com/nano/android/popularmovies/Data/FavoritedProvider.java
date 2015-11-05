@@ -51,8 +51,35 @@ public class FavoritedProvider extends ContentProvider{
     @Override
     public boolean onCreate() {return false;}
 
+    /*
+        Use UriMatcher to decide which type of URI it is.
+     */
     @Override
-    public String getType(Uri uri) {return null;}
+    public String getType(Uri uri) {
+
+        final int match = mUriMatcher.match(uri);
+
+        switch (match) {
+            case FAVORITE:
+                return FavoritedContract.FavoriteEntry.CONTENT_DIR_TYPE;    // dir
+            case FAVORITE_ID:
+                return FavoritedContract.FavoriteEntry.CONTENT_ITEM_TYPE;   // single item
+            case TRAILER:
+                return FavoritedContract.TrailerEntry.CONTENT_DIR_TYPE;     // dir
+            case TRAILER_MOVIE_ID:
+                return FavoritedContract.TrailerEntry.CONTENT_DIR_TYPE;     // multiple items,dir
+            case TRAILER_ID:
+                return FavoritedContract.TrailerEntry.CONTENT_ITEM_TYPE;    // single item
+            case REVIEW:
+                return FavoritedContract.ReviewEntry.CONTENT_DIR_TYPE;      // dir
+            case REVIEW_MOVIE_ID:
+                return FavoritedContract.ReviewEntry.CONTENT_DIR_TYPE;      // multiple items, dir
+            case REVIEW_ID:
+                return FavoritedContract.ReviewEntry.CONTENT_ITEM_TYPE;     // single item
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+    }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,

@@ -58,7 +58,7 @@ public class FavoritedContract {
         public static final String CONTENT_DIR_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
         // Create a cursor of base type of item for single entry
-        public static final String CURSOR_ITEM_TYPE =
+        public static final String CONTENT_ITEM_TYPE =
                 ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
 
         // For building URI for a single row with _ID
@@ -95,7 +95,8 @@ public class FavoritedContract {
         // Help to build content provider query, to get a dataset with a specific movie_id
         // Still a Dir.
         public static Uri buildTrailerWithMovieId(long movie_id) {
-            return CONTENT_URI.buildUpon().appendPath(Long.toString(movie_id)).build();
+            return CONTENT_URI.buildUpon().appendPath(TrailerEntry.COLUMN_MOVIE_ID)
+                    .appendPath(Long.toString(movie_id)).build();
         }
 
         public static long getMovieIdFromUri(Uri uri) {
@@ -131,7 +132,8 @@ public class FavoritedContract {
         // Help to build content provider query, to get a dataset by filtering a specific movie_id
         // Still a Dir.
         public static Uri buildReviewWithMovieId(long movie_id) {
-            return CONTENT_URI.buildUpon().appendPath(Long.toString(movie_id)).build();
+            return CONTENT_URI.buildUpon().appendPath(ReviewEntry.COLUMN_MOVIE_ID)
+                    .appendPath(Long.toString(movie_id)).build();
         }
 
         public static long getMovieIdFromUri(Uri uri) {
