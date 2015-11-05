@@ -5,9 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
 
-import com.nano.android.popularmovies.Data.FavoritedContract;
-import com.nano.android.popularmovies.Data.FavoritedDbHelper;
-
 import java.util.HashSet;
 
 /**

@@ -38,6 +38,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.nano.android.popularmovies.MainActivity" />
         </activity>
+
+        <!--ContentProviders in this application-->
+        <provider
+            android:authorities="com.nano.android.popularmovies"
+            android:name=".data.FavoritedProvider">
+        </provider>
     </application>
 
 </manifest>

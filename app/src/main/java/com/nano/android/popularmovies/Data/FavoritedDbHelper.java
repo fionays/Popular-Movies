@@ -1,4 +1,4 @@
-package com.nano.android.popularmovies.Data;
+package com.nano.android.popularmovies.data;
 
 /**
  * Created by YANG on 11/4/2015.
@@ -8,9 +8,9 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.nano.android.popularmovies.Data.FavoritedContract.FavoriteEntry;
-import com.nano.android.popularmovies.Data.FavoritedContract.TrailerEntry;
-import com.nano.android.popularmovies.Data.FavoritedContract.ReviewEntry;
+import com.nano.android.popularmovies.data.FavoritedContract.FavoriteEntry;
+import com.nano.android.popularmovies.data.FavoritedContract.TrailerEntry;
+import com.nano.android.popularmovies.data.FavoritedContract.ReviewEntry;
 
 
 /**

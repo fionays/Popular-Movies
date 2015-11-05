@@ -1,4 +1,4 @@
-package com.nano.android.popularmovies.Data;
+package com.nano.android.popularmovies.data;
 
 /**
  * Created by YANG on 11/4/2015.
@@ -128,7 +128,7 @@ public class FavoritedContract {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
 
-        // Help to build content provider query, to get a dataset with a specific movie_id
+        // Help to build content provider query, to get a dataset by filtering a specific movie_id
         // Still a Dir.
         public static Uri buildReviewWithMovieId(long movie_id) {
             return CONTENT_URI.buildUpon().appendPath(Long.toString(movie_id)).build();

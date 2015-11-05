@@ -4,8 +4,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.test.AndroidTestCase;
 
-import com.nano.android.popularmovies.Data.FavoritedContract;
-
 import java.util.Map;
 import java.util.Set;
 

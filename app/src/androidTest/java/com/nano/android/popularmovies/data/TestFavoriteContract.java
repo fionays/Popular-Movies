@@ -7,8 +7,6 @@ package com.nano.android.popularmovies.data;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
-import com.nano.android.popularmovies.Data.FavoritedContract;
-
 /**
  * Test 2 URI building functions in contract
  */
