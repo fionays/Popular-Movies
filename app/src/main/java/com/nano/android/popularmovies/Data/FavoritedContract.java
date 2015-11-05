@@ -4,6 +4,8 @@ package com.nano.android.popularmovies.Data;
  * Created by YANG on 11/4/2015.
  */
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -47,22 +49,22 @@ public class FavoritedContract {
         public static final String COLUMN_VOTE = "average_vote";
         public static final String COLUMN_OVERVIEW = "overview";
 
-//        // Add ContentProvider to the FavoriteEntry***************************
-//        public static final Uri CONTENT_URI =
-//                BASE_CONTENT_URI.buildUpon().appendPath(PATH_FAVORITE).build();
-//
-//        // TODO: Still confused about those type
-//        // Create a cursor of base type directory for multiple entries
-//        public static final String CONTENT_DIR_TYPE =
-//                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
-//        // Create a cursor of base type of item for single entry
-//        public static final String CURSOR_ITEM_TYPE =
-//                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
-//
-//        // For building URIs insertion
-//        public static Uri buildFavoriteUri(long id) {
-//            return ContentUris.withAppendedId(CONTENT_URI, id);
-//        }
+        // Add ContentProvider to the FavoriteEntry***************************
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_FAVORITE).build();
+
+        // TODO: Still confused about those type
+        // Create a cursor of base type directory for multiple entries
+        public static final String CONTENT_DIR_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
+        // Create a cursor of base type of item for single entry
+        public static final String CURSOR_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
+
+        // For building URI for a single row with _ID
+        public static Uri buildFavoriteUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
     /**
@@ -77,22 +79,32 @@ public class FavoritedContract {
         public static final String COLUMN_TRAILER_NAME = "name";
         public static final String COLUMN_TRAILER_KEY = "key";
 
-//        // Add ContentProvoder to the TrailerEntry**************************
-//        public static final Uri CONTENT_UTI =
-//                BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRAILER).build();
-//
-//        public static final String CONTENT_DIR_TYPE =
-//                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_TRAILER;
-//        public static final String CONTENT_ITEM_TYPE =
-//                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" +PATH_TRAILER;
-//
-//        public static Uri buildTrailerUri(long id) {
-//            return ContentUris.withAppendedId(CONTENT_UTI, id);
-//        }
+        // Add ContentProvoder to the TrailerEntry**************************
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRAILER).build();
+
+        public static final String CONTENT_DIR_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_TRAILER;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" +PATH_TRAILER;
+
+        public static Uri buildTrailerUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        // Help to build content provider query, to get a dataset with a specific movie_id
+        // Still a Dir.
+        public static Uri buildTrailerWithMovieId(long movie_id) {
+            return CONTENT_URI.buildUpon().appendPath(Long.toString(movie_id)).build();
+        }
+
+        public static long getMovieIdFromUri(Uri uri) {
+            return Long.parseLong(uri.getPathSegments().get(1));
+        }
     }
 
     /**
-     * Inner class that defines the table contents of trailer table.
+     * Inner class that defines the table contents of review table.
      */
     public static final class ReviewEntry implements BaseColumns {
 
@@ -103,18 +115,28 @@ public class FavoritedContract {
         public static final String COLUMN_AUTHOR = "author";
         public static final String COLUMN_CONTENT = "content";
 
-//        // Add ContentProvider to the TrailerEntry**************************
-//        public static final Uri CONTENT_UTI =
-//                BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEW).build();
-//
-//        public static final String CONTENT_DIR_TYPE =
-//                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_REVIEW;
-//        public static final String CONTENT_ITEM_TYPE =
-//                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" +PATH_REVIEW;
-//
-//        public static Uri buildTrailerUri(long id) {
-//            return ContentUris.withAppendedId(CONTENT_UTI, id);
-//        }
+        // Add ContentProvider to the TrailerEntry**************************
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_REVIEW).build();
+
+        public static final String CONTENT_DIR_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_REVIEW;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" +PATH_REVIEW;
+
+        public static Uri buildReviewUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        // Help to build content provider query, to get a dataset with a specific movie_id
+        // Still a Dir.
+        public static Uri buildReviewWithMovieId(long movie_id) {
+            return CONTENT_URI.buildUpon().appendPath(Long.toString(movie_id)).build();
+        }
+
+        public static long getMovieIdFromUri(Uri uri) {
+            return Long.parseLong(uri.getPathSegments().get(1));
+        }
     }
 }
 
