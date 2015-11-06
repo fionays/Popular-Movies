@@ -53,7 +53,7 @@ public class FavoritedContract {
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_FAVORITE).build();
 
-        // TODO: Still confused about those type
+        // TODO: Still confused about those type. What are they used for?
         // Create a cursor of base type directory for multiple entries
         public static final String CONTENT_DIR_TYPE =
                 ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
@@ -64,6 +64,17 @@ public class FavoritedContract {
         // For building URI for a single row with _ID
         public static Uri buildFavoriteUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+
+        // Build a uri for querying a single favorite movie based on a specific movie_id.
+        // Used to check if the movie with this movie_id is existing in fav table
+        public static Uri buildFavoriteWithMovieId(long movieId) {
+            return FavoriteEntry.CONTENT_URI.buildUpon().appendPath(FavoriteEntry.COLUMN_MOVIE_ID)
+                    .appendPath(String.valueOf(movieId)).build();
+        }
+
+        public static long getMovieIdFromUri(Uri uri) {
+            return Long.parseLong(uri.getPathSegments().get(2));
         }
     }
 
@@ -88,6 +99,7 @@ public class FavoritedContract {
         public static final String CONTENT_ITEM_TYPE =
                 ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" +PATH_TRAILER;
 
+        // Appends the given _ID to the end of the path.
         public static Uri buildTrailerUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);
         }
@@ -100,7 +112,7 @@ public class FavoritedContract {
         }
 
         public static long getMovieIdFromUri(Uri uri) {
-            return Long.parseLong(uri.getPathSegments().get(1));
+            return Long.parseLong(uri.getPathSegments().get(2));
         }
     }
 
@@ -137,7 +149,7 @@ public class FavoritedContract {
         }
 
         public static long getMovieIdFromUri(Uri uri) {
-            return Long.parseLong(uri.getPathSegments().get(1));
+            return Long.parseLong(uri.getPathSegments().get(2));
         }
     }
 }
