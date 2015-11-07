@@ -23,12 +23,17 @@ public class SettingsActivityFragment extends PreferenceFragment
         addPreferencesFromResource(R.xml.preferences);
 
         // Attach an OnPreferenceChangListener to update UI summary when preference changes.
+        // Find preference according to the key of pref
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_sort_key)));
     }
 
     private void bindPreferenceSummaryToValue(Preference preference) {
         // Set listener for value changes
         preference.setOnPreferenceChangeListener(this);
+        // Sets the default values from an XML preference file by reading the values defined by
+        // each Preference item's android:defaultValue attribute.
+        // Fasle means it will not re-read the default values if the method has been called
+        // in the past.
         PreferenceManager.setDefaultValues(preference.getContext(), R.xml.preferences, false);
     }
 

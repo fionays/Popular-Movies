@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
     <!--Preferences for sorting criteria-->
     <ListPreference
-        android:title="Sort"
+        android:title="@string/pref_sort_title"
         android:key="@string/pref_sort_key"
         android:entries="@array/array_entries"
         android:entryValues="@array/entry_values"

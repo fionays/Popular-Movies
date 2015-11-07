@@ -2,11 +2,9 @@ package com.nano.android.popularmovies;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,7 +34,6 @@ import java.util.ArrayList;
 
         private static final String LOG_TAG = MovieFragment.class.getSimpleName();
         private static final String KEY = "movie";
-        private static final String API_KEY = BuildConfig.THE_MOVIE_DB_API_KEY;
         private ImageAdapter imageAdapter;
 
         private ArrayList<MovieHolder> movieList = new ArrayList<MovieHolder>();
@@ -97,8 +94,10 @@ import java.util.ArrayList;
         @Override
         public void onStart() {
             super.onStart();
-            FetchMovieTask fetchMovieTask = new FetchMovieTask();
-            fetchMovieTask.execute(API_KEY);
+                // Fetch movies from server if sort by popularity and rate
+                FetchMovieTask fetchMovieTask = new FetchMovieTask();
+                String sortPref = Utility.getPreferredSort(getActivity());
+                fetchMovieTask.execute(sortPref);
         }
 
 
@@ -185,7 +184,7 @@ import java.util.ArrayList;
             @Override
             protected MovieHolder[] doInBackground(String...params) {
 
-                // If there is no api_KEY, return null.
+                // If there is no sort_by value, nothing to look up, return null.
                 if(params.length == 0) {return null;}
                 /***************************HTTP request for movie.*************************/
                 //STEP 1: Make HTTP request.
@@ -194,9 +193,7 @@ import java.util.ArrayList;
                 // To hold raw JSON response as a string.
                 String movieJsonStr = null;
                 // Discover sort_by parameter. Retrieve from sharedPreference.
-                String defaultSortBy = getResources().getString(R.string.pref_sort_default);
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                String sortPref = sharedPref.getString(getString(R.string.pref_sort_key), defaultSortBy);
+                String sortPref = params[0];
 
                 try {
                     // Construct URI for themoviedb movie query.
@@ -208,7 +205,7 @@ import java.util.ArrayList;
                     // append() returns a Uri.Builder; build() returns a Uri.
                     Uri builtUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
                             .appendQueryParameter(SORT_BY, sortPref)
-                            .appendQueryParameter(API_KEY, params[0])
+                            .appendQueryParameter(API_KEY, BuildConfig.THE_MOVIE_DB_API_KEY)
                             .build();
 
                     // To check the Uri was built correctly.

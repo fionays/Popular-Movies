@@ -19,7 +19,15 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.add(R.id.container, new MovieFragment()).commit();
+
+            // Show right fragment according to the sorted preference
+            if (Utility.isSortFavorite(this)) {
+                // Go to FavoriteFragment to fetch movies from database
+
+            } else {
+                // Go to MovieFragment to fetch movies from server
+                fragmentTransaction.add(R.id.container, new MovieFragment()).commit();
+            }
         }
 
 
