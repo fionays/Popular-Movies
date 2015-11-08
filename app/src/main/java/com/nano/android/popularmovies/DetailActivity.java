@@ -5,12 +5,9 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -26,18 +23,6 @@ import android.widget.Toast;
 
 import com.nano.android.popularmovies.data.FavoritedContract;
 import com.squareup.picasso.Picasso;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -106,7 +91,7 @@ public class DetailActivity extends AppCompatActivity {
                 // Then mark the checkbox.
                 // Otherwise, the movie is downloaded from server. Need to query fav table to check
                 // if it has been added to fav table.
-                if (theMovie.favorite || isAdded(theMovie)) {
+                if (theMovie.favorite || isMovieAdded()) {
                     checked = true;
                 }
                 favCheckBox.setChecked(checked);
@@ -118,11 +103,11 @@ public class DetailActivity extends AppCompatActivity {
                     // If new state is checked, insert the movie into database.
                     // Otherwise, delete the record from favorite table
                     if (isChecked) {
-                        addMovie(theMovie);
+                        addMovie();
                         Toast.makeText(getActivity(), "Added to favorites!", Toast.LENGTH_LONG)
                                 .show();
                     } else {
-                        removeMovie(theMovie);
+                        removeMovie();
                         Toast.makeText(getActivity(), "Removed from favorites", Toast.LENGTH_LONG)
                                 .show();
                     }
@@ -145,49 +130,21 @@ public class DetailActivity extends AppCompatActivity {
             }
         }
 
-        /**
-         * Start Youtube to play trailer using Intent
-         * @param key  The source of the trailer
-         */
-         void playTrailerIntent(String key) {
-
-            final String VALUE = "v";
-            final String BASE_YOUTUBE_URI = "http://www.youtube.com/watch?";
-            Uri builtUri = Uri.parse(BASE_YOUTUBE_URI).buildUpon()
-                    .appendQueryParameter(VALUE, key)
-                    .build();
-
-            // Build the intent
-            Intent playIntent = new Intent(Intent.ACTION_VIEW, builtUri);
-
-            // Verify it resolves
-            PackageManager packageManager = getActivity().getPackageManager();
-            // TODO: Why the example in documentation set flag = 0?
-            List<ResolveInfo> activities = packageManager.queryIntentActivities(playIntent,PackageManager.MATCH_DEFAULT_ONLY);
-            boolean isIntentSafe = activities.size() > 0;
-
-            // Start an activity if it is safe
-            if (isIntentSafe) {
-                startActivity(playIntent);
-            }
-        }
-
         private void fetchOnline() {
-            FetchDataTask fetchDataTask = new FetchDataTask();
+            FetchTrailerReview fetchDataTask = new FetchTrailerReview(
+                    getActivity(),trailersReviewsContainer, theMovie);
             fetchDataTask.execute(BuildConfig.THE_MOVIE_DB_API_KEY);
         }
 
         private void fetchFromDatabase(MovieHolder theMovie) {
             Log.v(LOG_CAT, "Entering fetchFromDatabase");
-            queryTrailerTable(theMovie);
-            queryReviewTable(theMovie);
+            queryTrailerTable();
+            queryReviewTable();
         }
 
-        private void queryTrailerTable(MovieHolder theMovie) {
-
+        private void queryTrailerTable() {
             Log.v(LOG_CAT, "Entering queryTrailerTable");
-            long movieId = theMovie.movieId;
-            Uri uri = FavoritedContract.TrailerEntry.buildTrailerWithMovieId(movieId);
+            Uri uri = FavoritedContract.TrailerEntry.buildTrailerWithMovieId(theMovie.movieId);
 
             Cursor cur = getActivity().getContentResolver().query(uri, null, null, null, null);
 
@@ -200,13 +157,11 @@ public class DetailActivity extends AppCompatActivity {
                     String name = values.getAsString(FavoritedContract.TrailerEntry.COLUMN_TRAILER_NAME);
                     String key = values.getAsString(FavoritedContract.TrailerEntry.COLUMN_TRAILER_KEY);
 
-                    MovieHolder.Trailer trailer = new MovieHolder.Trailer(movieId, name, key);
+                    MovieHolder.Trailer trailer = new MovieHolder.Trailer(theMovie.movieId, name, key);
                     theMovie.trailers.add(trailer);
                 } while (cur.moveToNext());
 
                 // display trailers
-                trailersReviewsContainer.removeAllViews();
-
                 for (final MovieHolder.Trailer trailer : theMovie.trailers) {
                     View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_item, null);
                     // Set the trailer title
@@ -218,7 +173,7 @@ public class DetailActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View view) {
                             // Start an Intent to open the trailer on Youtube
-                            playTrailerIntent(trailer.key);
+                            Utility.playTrailerIntent(trailer.key, getActivity());
                         }
                     });
 
@@ -228,9 +183,8 @@ public class DetailActivity extends AppCompatActivity {
             }
         }
 
-        private void queryReviewTable(MovieHolder theMovie) {
-            long movieId = theMovie.movieId;
-            Uri uri = FavoritedContract.ReviewEntry.buildReviewWithMovieId(movieId);
+        private void queryReviewTable() {
+            Uri uri = FavoritedContract.ReviewEntry.buildReviewWithMovieId(theMovie.movieId);
 
             Cursor cur = getActivity().getContentResolver().query(uri, null, null, null, null);
 
@@ -243,7 +197,7 @@ public class DetailActivity extends AppCompatActivity {
                     String name = values.getAsString(FavoritedContract.ReviewEntry.COLUMN_AUTHOR);
                     String content = values.getAsString(FavoritedContract.ReviewEntry.COLUMN_CONTENT);
 
-                    MovieHolder.Review review = new MovieHolder.Review(movieId, name, content);
+                    MovieHolder.Review review = new MovieHolder.Review(theMovie.movieId, name, content);
                     theMovie.reviews.add(review);
                 } while (cur.moveToNext());
 
@@ -264,12 +218,10 @@ public class DetailActivity extends AppCompatActivity {
         }
         /**
          * Query the fav table based on the movie id. Check if the movie has been added to the fav.
-         * @param movie  Movie that will be checked.
          * @return       True if it is existing in the fav table.
          */
-        private boolean isAdded(MovieHolder movie) {
-            long movieId = movie.movieId;
-            Uri uriWithMovieId = FavoritedContract.FavoriteEntry.buildFavoriteWithMovieId(movieId);
+        private boolean isMovieAdded() {
+            Uri uriWithMovieId = FavoritedContract.FavoriteEntry.buildFavoriteWithMovieId(theMovie.movieId);
             Cursor cur = getActivity().getContentResolver().query(
                     uriWithMovieId, null, null, null, null);
             if (!cur.moveToFirst()) {
@@ -278,33 +230,33 @@ public class DetailActivity extends AppCompatActivity {
             return true;
         }
 
-        private void addMovie(MovieHolder theMovie) {
-            addDetails(theMovie);
-            addTrailers(theMovie);
-            addReviews(theMovie);
+        private void addMovie() {
+            addDetails();
+            addTrailers();
+            addReviews();
         }
 
-        private void removeMovie(MovieHolder theMovie) {
-            removeDetails(theMovie);
-            removeTrailers(theMovie);
-            removeReviews(theMovie);
+        private void removeMovie() {
+            removeDetails();
+            removeTrailers();
+            removeReviews();
         }
 
-        private void addDetails(MovieHolder movie) {
+        private void addDetails() {
             ContentValues insertValues = new ContentValues();
-            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_POSTER, movie.posterPath);
-            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_MOVIE_ID, movie.movieId);
-            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_TITLE, movie.originalTitle);
-            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_RELEASE_DATE, movie.releaseDate);
-            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_VOTE, movie.voteAverage);
-            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_OVERVIEW, movie.overview);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_POSTER, theMovie.posterPath);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_MOVIE_ID, theMovie.movieId);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_TITLE, theMovie.originalTitle);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_RELEASE_DATE, theMovie.releaseDate);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_VOTE, theMovie.voteAverage);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_OVERVIEW, theMovie.overview);
 
             Uri tableUri = FavoritedContract.FavoriteEntry.CONTENT_URI;
 
             getActivity().getContentResolver().insert(tableUri, insertValues);
         }
 
-        private void addTrailers(MovieHolder theMovie) {
+        private void addTrailers() {
             int count = theMovie.trailers.size();
             if (count > 0) {
                 Uri tableUri = FavoritedContract.TrailerEntry.CONTENT_URI;
@@ -325,7 +277,7 @@ public class DetailActivity extends AppCompatActivity {
             }
         }
 
-        private void addReviews(MovieHolder theMovie) {
+        private void addReviews() {
             int count = theMovie.reviews.size();
             if (count > 0) {
                 Uri tableUri = FavoritedContract.ReviewEntry.CONTENT_URI;
@@ -345,295 +297,22 @@ public class DetailActivity extends AppCompatActivity {
             }
         }
 
-        private void removeDetails(MovieHolder theMovie) {
+        private void removeDetails() {
             Uri uri = FavoritedContract.FavoriteEntry.buildFavoriteWithMovieId(theMovie.movieId);
             getActivity().getContentResolver().delete(uri, null, null);
         }
-        private void removeTrailers(MovieHolder theMovie) {
+
+        private void removeTrailers() {
             if (theMovie.trailers.size() > 0) {
                 Uri uri = FavoritedContract.TrailerEntry.buildTrailerWithMovieId(theMovie.movieId);
                 getActivity().getContentResolver().delete(uri, null, null);
             }
         }
-        private void removeReviews(MovieHolder theMovie) {
+
+        private void removeReviews() {
             if (theMovie.reviews.size() > 0) {
                 Uri uri = FavoritedContract.ReviewEntry.buildReviewWithMovieId(theMovie.movieId);
                 getActivity().getContentResolver().delete(uri, null, null);
-            }
-        }
-
-        /**
-         * An inner class to fetch trailers and reviews for this movie
-         */
-        public class FetchDataTask extends AsyncTask<String, Void, MovieHolder> {
-
-            private final String TASK_LOG_TAG = FetchDataTask.class.getSimpleName();
-
-            /**
-             * Extract trailers fields: "movie_id", "trailer_name", "key". Add them to the movie.
-             * @param trailerJsonStr String representation of JSON.
-             * @return               A MovieHolder Object with zero or more trailers
-             * @throws JSONException
-             */
-            private void getTrailersFromJson(String trailerJsonStr) throws JSONException {
-
-                final String MOVIE_ID = "id";
-                final String TRAILER_NAME = "name";
-                final String KEY = "key";
-                final String RESULTS = "results";
-                // Convert JSON string to JSON object
-                JSONObject jsonObject = new JSONObject(trailerJsonStr);
-                JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
-
-                long movieId = jsonObject.getLong(MOVIE_ID);
-
-                int count = resultArray.length();
-                for ( int i = 0; i < count; i ++) {
-                    // Get JSON object for each trailer
-                    JSONObject trailerJson = resultArray.getJSONObject(i);
-
-                    String name = trailerJson.getString(TRAILER_NAME);
-                    String key = trailerJson.getString(KEY);
-
-                    MovieHolder.Trailer trailer = new MovieHolder.Trailer(movieId, name, key);
-                    // Add each trailer to the trailers List.
-                    theMovie.trailers.add(trailer);
-                }
-
-                // Test
-                Log.v(TASK_LOG_TAG, "The number of trailers: " + count);
-                for (MovieHolder.Trailer t : theMovie.trailers) {
-                    Log.v(TASK_LOG_TAG, "Trailer infor: " + t);
-                }
-            }
-
-            /**
-             * Extract review fields: "movie_id", "author", "content". Add them to the movie.
-             * @param reviewsJsonStr String format of JSON
-             * @throws JSONException
-             */
-            private void getReviewsFromJson(String reviewsJsonStr) throws JSONException {
-
-                final String MOVIE_ID = "id";
-                final String RESULTS = "results";
-                final String AUTHOR = "author";
-                final String CONTENT = "content";
-
-                // Convert JSON String to JSON
-                JSONObject jsonObject = new JSONObject(reviewsJsonStr);
-
-                long movieID = jsonObject.getLong(MOVIE_ID);
-                JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
-                int count = resultArray.length();
-
-                for (int i = 0; i < count; i ++) {
-                    // Get JSON object for each review
-                    JSONObject reviewJson = resultArray.getJSONObject(i);
-
-                    String author = reviewJson.getString(AUTHOR);
-                    String content = reviewJson.getString(CONTENT);
-
-                    MovieHolder.Review review = new MovieHolder.Review(movieID, author, content);
-
-                    theMovie.reviews.add(review);
-                }
-
-                // Test
-                Log.v(TASK_LOG_TAG, "The number of reviews: " + count);
-                for (MovieHolder.Review r : theMovie.reviews) {
-                    Log.v(TASK_LOG_TAG, "Reviews infor: " + r);
-                }
-            }
-
-            /**
-             * Fetch trailers as well as reviews in a single AsyncTask
-             * @param params  The API_KEY
-             * @return        The MovieHolder object with trailers and reviews
-             */
-            @Override
-            protected MovieHolder doInBackground(String... params) {
-                // Return null if there is no API_KEY
-                if (params.length == 0) {return null;}
-
-                final String BASE_URL = "http://api.themoviedb.org/3/movie";
-                final String API_KEY = "api_key";
-                final String VIDEOS = "videos";
-                final String REVIEWS = "reviews";
-                final long MOVIE_ID = theMovie.movieId;
-                String trailersJsonStr = null;
-                String reviewsJsonStr = null;
-
-                // Step1: Make HTTP request.
-                HttpURLConnection urlConnection = null;
-                BufferedReader bufferedReader = null;
-
-                /*******************HTTP request for trailers**********************/
-                try {
-                    // Construct URI for trailer query
-                    final String TRAILER_URL = BASE_URL + "/" + MOVIE_ID + "/" + VIDEOS;
-                    Uri builtTrailerUri = Uri.parse(TRAILER_URL).buildUpon()
-                            .appendQueryParameter(API_KEY, params[0])
-                            .build();
-
-                    Log.v(TASK_LOG_TAG, "Built trailer URL " + builtTrailerUri.toString());
-
-                    // Construct URL
-                    URL trailerURL = new URL(builtTrailerUri.toString());
-
-                    // Open the connection
-                    urlConnection = (HttpURLConnection)trailerURL.openConnection();
-                    urlConnection.setRequestMethod("GET");
-                    urlConnection.connect();
-
-                    // Step 2; Read response from input stream(string of JSON)
-                    InputStream inputStream = urlConnection.getInputStream();
-                    StringBuffer buffer = new StringBuffer();
-
-                    if(inputStream == null) {return  null;}
-                    bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                    String line;
-
-                    // Read input stream into string
-                    while ((line = bufferedReader.readLine() ) != null) {
-                        buffer.append(line + "\n");
-                    }
-
-                    if(buffer == null) {return null;}
-
-                    trailersJsonStr = buffer.toString();
-                    Log.v(TASK_LOG_TAG, "Trailer JSON String: " + trailersJsonStr);
-                } catch(IOException e) {
-                    Log.e(TASK_LOG_TAG, e.getMessage(), e);
-                    e.printStackTrace();
-                    return null;
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect();
-                    }
-
-                    if (bufferedReader != null) {
-                        try {
-                            bufferedReader.close();
-                        } catch (IOException e) {
-                            Log.e(TASK_LOG_TAG, e.getMessage(), e);
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                /*******************HTTP request for Reviews**********************/
-
-                try {
-                    // Construct URI for reviews query.
-                    final String REVIEW_URL = BASE_URL + "/" + MOVIE_ID + "/" + REVIEWS;
-                    Uri builtReviewUri = Uri.parse(REVIEW_URL).buildUpon()
-                            .appendQueryParameter(API_KEY, params[0])
-                            .build();
-
-                    Log.v(TASK_LOG_TAG, "Build review URI: " + builtReviewUri.toString());
-
-                    // Construct URL
-                    URL reviewURL = new URL(builtReviewUri.toString());
-
-                    // Open connection
-                    urlConnection = (HttpURLConnection)reviewURL.openConnection();
-                    urlConnection.setRequestMethod("GET");
-                    urlConnection.connect();
-
-                    // Step 2: Read response from input stream (String of JSON)
-                    InputStream inputStream = urlConnection.getInputStream();
-                    StringBuffer buffer = new StringBuffer();
-
-                    if (inputStream == null) {return  null;}
-
-                    bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                    String line;
-
-                    // Read input stream into string;
-                    while((line = bufferedReader.readLine()) != null) {
-                        buffer.append(line + "\n");
-                    }
-
-                    if (buffer == null) {return null;}
-
-                    // Get JSON String out of buffer
-                    reviewsJsonStr = buffer.toString();
-
-                    Log.v(TASK_LOG_TAG, "Reviews JSON string: " + reviewsJsonStr);
-                } catch (IOException e) {
-                    Log.e(TASK_LOG_TAG, e.getMessage(), e);
-                    e.printStackTrace();
-                    return  null;
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect();
-                    }
-                    if (bufferedReader != null) {
-                        try {
-                            bufferedReader.close();
-                        } catch (IOException e) {
-                            Log.e(TASK_LOG_TAG, e.getMessage(), e);
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-
-                // Extract trailers and reviews from JSON string and add them to the movie
-                try {
-                    getTrailersFromJson(trailersJsonStr);
-                    getReviewsFromJson(reviewsJsonStr);
-                    return theMovie;
-
-                } catch (JSONException e) {
-                    Log.e(TASK_LOG_TAG, e.getMessage(), e);
-                    e.printStackTrace();
-                }
-
-                return null;
-            }
-            @Override
-            protected void onPostExecute(MovieHolder results) {
-                // Adding trailers and reviews programmatically
-                // Clear all existing views in it
-                trailersReviewsContainer.removeAllViews();
-
-                // Add trailers
-                if (results.trailers.size() != 0) {
-                    for (final MovieHolder.Trailer video : theMovie.trailers) {
-                        View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_item, null);
-                        // Set the trailer title
-                        TextView trailerTitle = (TextView)trailerItem.findViewById(R.id.movie_trailer_name);
-                        trailerTitle.setText(video.trailerName);
-
-                        // Add OnClickListener to the view
-                        trailerItem.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                // Start an Intent to open the trailer on Youtube
-                                playTrailerIntent(video.key);
-                            }
-                        });
-
-                        // Add this trailer to the end of container
-                        trailersReviewsContainer.addView(trailerItem);
-                    }
-                }
-
-                // Add reviews
-                if (results.reviews.size() != 0) {
-                    for (final MovieHolder.Review review : theMovie.reviews) {
-                        View reviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.review_item, null);
-
-                        TextView reviewAuthor = (TextView)reviewItem.findViewById(R.id.review_author);
-                        TextView reviewContent = (TextView)reviewItem.findViewById(R.id.review_content);
-                        reviewAuthor.setText(review.author);
-                        reviewContent.setText(review.content);
-
-                        // Add this review to the end of container
-                        trailersReviewsContainer.addView(reviewItem);
-                    }
-                }
-
             }
         }
     }
