@@ -64,7 +64,7 @@ public class FavoriteFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        queryFavoriteTable();
+        fetchFromDatabase();
     }
 
     /**
@@ -92,7 +92,7 @@ public class FavoriteFragment extends Fragment {
     /*
         Helper method: Query the favorite table and populate the fragment with data got from db.
      */
-     private void queryFavoriteTable() {
+     private void fetchFromDatabase() {
 
         // Query favorite table
         Uri favoriteUri = FavoritedContract.FavoriteEntry.CONTENT_URI;

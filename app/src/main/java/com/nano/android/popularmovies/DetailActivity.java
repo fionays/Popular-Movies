@@ -7,6 +7,8 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -62,9 +64,7 @@ public class DetailActivity extends AppCompatActivity {
             fragmentTransaction.add(R.id.detail_container, detailFragment).commit();
         }
 
-        }
-
-
+    }
 
     public static class DetailFragment extends Fragment {
 
@@ -128,8 +128,131 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public void onStart() {
             super.onStart();
+            // If entering DetailActivity from favorite movie list
+            if (theMovie.favorite) {
+                fetchFromDatabase(theMovie);
+                Log.v(LOG_CAT, "Fetch trailers and reviews from database.");
+            } else {
+                fetchOnline();
+            }
+        }
+
+        /**
+         * Start Youtube to play trailer using Intent
+         * @param key  The source of the trailer
+         */
+         void playTrailerIntent(String key) {
+
+            final String VALUE = "v";
+            final String BASE_YOUTUBE_URI = "http://www.youtube.com/watch?";
+            Uri builtUri = Uri.parse(BASE_YOUTUBE_URI).buildUpon()
+                    .appendQueryParameter(VALUE, key)
+                    .build();
+
+            // Build the intent
+            Intent playIntent = new Intent(Intent.ACTION_VIEW, builtUri);
+
+            // Verify it resolves
+            PackageManager packageManager = getActivity().getPackageManager();
+            // TODO: Why the example in documentation set flag = 0?
+            List<ResolveInfo> activities = packageManager.queryIntentActivities(playIntent,PackageManager.MATCH_DEFAULT_ONLY);
+            boolean isIntentSafe = activities.size() > 0;
+
+            // Start an activity if it is safe
+            if (isIntentSafe) {
+                startActivity(playIntent);
+            }
+        }
+
+        private void fetchOnline() {
             FetchDataTask fetchDataTask = new FetchDataTask();
             fetchDataTask.execute(BuildConfig.THE_MOVIE_DB_API_KEY);
+        }
+
+        private void fetchFromDatabase(MovieHolder theMovie) {
+            Log.v(LOG_CAT, "Entering fetchFromDatabase");
+            queryTrailerTable(theMovie);
+            queryReviewTable(theMovie);
+        }
+
+        private void queryTrailerTable(MovieHolder theMovie) {
+
+            Log.v(LOG_CAT, "Entering queryTrailerTable");
+            long movieId = theMovie.movieId;
+            Uri uri = FavoritedContract.TrailerEntry.buildTrailerWithMovieId(movieId);
+
+            Cursor cur = getActivity().getContentResolver().query(uri, null, null, null, null);
+
+            // If the cursor is not empty
+            if (cur.moveToFirst()) {
+                do {
+                    ContentValues values = new ContentValues();
+                    DatabaseUtils.cursorRowToContentValues(cur, values);
+
+                    String name = values.getAsString(FavoritedContract.TrailerEntry.COLUMN_TRAILER_NAME);
+                    String key = values.getAsString(FavoritedContract.TrailerEntry.COLUMN_TRAILER_KEY);
+
+                    MovieHolder.Trailer trailer = new MovieHolder.Trailer(movieId, name, key);
+                    theMovie.trailers.add(trailer);
+                } while (cur.moveToNext());
+
+                // display trailers
+                trailersReviewsContainer.removeAllViews();
+
+                for (final MovieHolder.Trailer trailer : theMovie.trailers) {
+                    View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_item, null);
+                    // Set the trailer title
+                    TextView trailerTitle = (TextView)trailerItem.findViewById(R.id.movie_trailer_name);
+                    trailerTitle.setText(trailer.trailerName);
+
+                    // Add OnClickListener to the view
+                    trailerItem.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // Start an Intent to open the trailer on Youtube
+                            playTrailerIntent(trailer.key);
+                        }
+                    });
+
+                    // Add this trailer to the end of container
+                    trailersReviewsContainer.addView(trailerItem);
+                }
+            }
+        }
+
+        private void queryReviewTable(MovieHolder theMovie) {
+            long movieId = theMovie.movieId;
+            Uri uri = FavoritedContract.ReviewEntry.buildReviewWithMovieId(movieId);
+
+            Cursor cur = getActivity().getContentResolver().query(uri, null, null, null, null);
+
+            // If the cursor is not empty
+            if (cur.moveToFirst()) {
+                do {
+                    ContentValues values = new ContentValues();
+                    DatabaseUtils.cursorRowToContentValues(cur, values);
+
+                    String name = values.getAsString(FavoritedContract.ReviewEntry.COLUMN_AUTHOR);
+                    String content = values.getAsString(FavoritedContract.ReviewEntry.COLUMN_CONTENT);
+
+                    MovieHolder.Review review = new MovieHolder.Review(movieId, name, content);
+                    theMovie.reviews.add(review);
+                } while (cur.moveToNext());
+
+                // Display those reviews
+                for (final MovieHolder.Review review : theMovie.reviews) {
+                    View reviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.review_item, null);
+
+                    TextView reviewAuthor = (TextView)reviewItem.findViewById(R.id.review_author);
+                    TextView reviewContent = (TextView)reviewItem.findViewById(R.id.review_content);
+                    reviewAuthor.setText(review.author);
+                    reviewContent.setText(review.content);
+
+                    // Add this review to the end of container
+                    trailersReviewsContainer.addView(reviewItem);
+                }
+
+            }
         }
         /**
          * Query the fav table based on the movie id. Check if the movie has been added to the fav.
@@ -137,8 +260,14 @@ public class DetailActivity extends AppCompatActivity {
          * @return       True if it is existing in the fav table.
          */
         private boolean isAdded(MovieHolder movie) {
-            // TODO:
-            return false;
+            long movieId = movie.movieId;
+            Uri uriWithMovieId = FavoritedContract.FavoriteEntry.buildFavoriteWithMovieId(movieId);
+            Cursor cur = getActivity().getContentResolver().query(
+                    uriWithMovieId, null, null, null, null);
+            if (!cur.moveToFirst()) {
+                return false;
+            }
+            return true;
         }
 
         private void addMovie(MovieHolder theMovie) {
@@ -166,11 +295,47 @@ public class DetailActivity extends AppCompatActivity {
         }
 
         private void addTrailers(MovieHolder theMovie) {
-            //TODO:
+            int count = theMovie.trailers.size();
+            if (count > 0) {
+                Uri tableUri = FavoritedContract.TrailerEntry.CONTENT_URI;
+
+                ContentValues[] valuesArray = new ContentValues[count];
+                for (int i = 0; i < count; i++) {
+                    MovieHolder.Trailer trailer = theMovie.trailers.get(i);
+                    ContentValues values = new ContentValues();
+
+                    values.put(FavoritedContract.TrailerEntry.COLUMN_MOVIE_ID, trailer.movieId);
+                    values.put(FavoritedContract.TrailerEntry.COLUMN_TRAILER_NAME, trailer.trailerName);
+                    values.put(FavoritedContract.TrailerEntry.COLUMN_TRAILER_KEY, trailer.key);
+
+                    valuesArray[i] = values;
+                }
+
+                getActivity().getContentResolver().bulkInsert(tableUri, valuesArray);
+            }
         }
+
         private void addReviews(MovieHolder theMovie) {
-            //TODO:
+            int count = theMovie.reviews.size();
+            if (count > 0) {
+                Uri tableUri = FavoritedContract.ReviewEntry.CONTENT_URI;
+
+                ContentValues[] valuesArray = new ContentValues[count];
+                for (int i = 0; i < count; i++) {
+                    MovieHolder.Review review = theMovie.reviews.get(i);
+                    ContentValues values = new ContentValues();
+
+                    values.put(FavoritedContract.ReviewEntry.COLUMN_MOVIE_ID, review.movieId);
+                    values.put(FavoritedContract.ReviewEntry.COLUMN_AUTHOR, review.author);
+                    values.put(FavoritedContract.ReviewEntry.COLUMN_CONTENT, review.content);
+
+                    valuesArray[i] = values;
+                }
+
+                getActivity().getContentResolver().bulkInsert(tableUri, valuesArray);
+            }
         }
+
         private void removeDetails(MovieHolder theMovie) {
 
         }
@@ -187,33 +352,6 @@ public class DetailActivity extends AppCompatActivity {
         public class FetchDataTask extends AsyncTask<String, Void, MovieHolder> {
 
             private final String TASK_LOG_TAG = FetchDataTask.class.getSimpleName();
-
-            /**
-             * Helper method: Start Youtube to play trailer using Intent
-             * @param key  The source of the trailer
-             */
-            private void playTrailerIntent(String key) {
-
-                final String VALUE = "v";
-                final String BASE_YOUTUBE_URI = "http://www.youtube.com/watch?";
-                Uri builtUri = Uri.parse(BASE_YOUTUBE_URI).buildUpon()
-                        .appendQueryParameter(VALUE, key)
-                        .build();
-
-                // Build the intent
-                Intent playIntent = new Intent(Intent.ACTION_VIEW, builtUri);
-
-                // Verify it resolves
-                PackageManager packageManager = getActivity().getPackageManager();
-                // TODO: Why the example in documentation set flag = 0?
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(playIntent,PackageManager.MATCH_DEFAULT_ONLY);
-                boolean isIntentSafe = activities.size() > 0;
-
-                // Start an activity if it is safe
-                if (isIntentSafe) {
-                    startActivity(playIntent);
-                }
-            }
 
             /**
              * Extract trailers fields: "movie_id", "trailer_name", "key". Add them to the movie.
@@ -477,7 +615,6 @@ public class DetailActivity extends AppCompatActivity {
 
                         // Add this review to the end of container
                         trailersReviewsContainer.addView(reviewItem);
-
                     }
                 }
 
