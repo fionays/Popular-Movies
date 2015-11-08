@@ -3,6 +3,7 @@ package com.nano.android.popularmovies;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -15,10 +16,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.nano.android.popularmovies.data.FavoritedContract;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -67,6 +70,7 @@ public class DetailActivity extends AppCompatActivity {
 
         private final String LOG_CAT = DetailFragment.class.getSimpleName();
         private MovieHolder theMovie;
+        private boolean checked = false;
 
         @Bind(R.id.title)TextView title;
         @Bind(R.id.release_date)TextView release;
@@ -74,7 +78,7 @@ public class DetailActivity extends AppCompatActivity {
         @Bind(R.id.overview)TextView overView;
         @Bind(R.id.poster)ImageView poster;
         @Bind(R.id.trailer_reviews_container)LinearLayout trailersReviewsContainer;
-        @Bind(R.id.favorite_button)CheckBox favorite;
+        @Bind(R.id.favorite_button)CheckBox favCheckBox;
 
 
         public DetailFragment() {}
@@ -86,15 +90,10 @@ public class DetailActivity extends AppCompatActivity {
 
             // Receive the bundle sent by the activity
             Bundle bundle = getArguments();
+
             if (bundle != null) {
                 theMovie = bundle.getParcelable("MovieHolder");
 
-
-                //TextView title = (TextView)rootView.findViewById(R.id.title);
-                //ImageView poster = (ImageView)rootView.findViewById(R.id.poster);
-                //TextView release = (TextView)rootView.findViewById(R.id.release_date);
-                //TextView vote = (TextView)rootView.findViewById(R.id.vote_average);
-                //TextView overView = (TextView)rootView.findViewById(R.id.overview);
                 ButterKnife.bind(this, rootView);
                 title.setText(theMovie.originalTitle);
                 release.setText(theMovie.releaseDate);
@@ -102,7 +101,26 @@ public class DetailActivity extends AppCompatActivity {
                 overView.setText(theMovie.overview);
                 Picasso.with(getActivity()).load(theMovie.posterPath).into(poster);
 
+                // If the "favorite" field is true, means right now we are viewing the favorite lists.
+                // Then mark the checkbox.
+                // Otherwise, the movie is downloaded from server. Need to query fav table to check
+                // if it has been added to fav table.
+                if (theMovie.favorite || isAdded(theMovie)) {
+                    checked = true;
+                }
+                favCheckBox.setChecked(checked);
             }
+
+            favCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    // If new state is checked, insert the movie into database.
+                    addMovie(theMovie);
+                    // Otherwise, delete the record from favorite table
+                    removeMovie(theMovie);
+                }
+            });
+
 
             return rootView;
         }
@@ -112,6 +130,55 @@ public class DetailActivity extends AppCompatActivity {
             super.onStart();
             FetchDataTask fetchDataTask = new FetchDataTask();
             fetchDataTask.execute(BuildConfig.THE_MOVIE_DB_API_KEY);
+        }
+        /**
+         * Query the fav table based on the movie id. Check if the movie has been added to the fav.
+         * @param movie  Movie that will be checked.
+         * @return       True if it is existing in the fav table.
+         */
+        private boolean isAdded(MovieHolder movie) {
+            // TODO:
+            return false;
+        }
+
+        private void addMovie(MovieHolder theMovie) {
+            addDetails(theMovie);
+            addTrailers(theMovie);
+            addReviews(theMovie);
+        }
+        private void removeMovie(MovieHolder theMovie) {
+            removeDetails(theMovie);
+            removeTrailers(theMovie);
+            removeReviews(theMovie);
+        }
+        private void addDetails(MovieHolder movie) {
+            ContentValues insertValues = new ContentValues();
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_POSTER, movie.posterPath);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_MOVIE_ID, movie.movieId);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_TITLE, movie.originalTitle);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_RELEASE_DATE, movie.releaseDate);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_VOTE, movie.voteAverage);
+            insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_OVERVIEW, movie.overview);
+
+            Uri tableUri = FavoritedContract.FavoriteEntry.CONTENT_URI;
+
+            getActivity().getContentResolver().insert(tableUri, insertValues);
+        }
+
+        private void addTrailers(MovieHolder theMovie) {
+            //TODO:
+        }
+        private void addReviews(MovieHolder theMovie) {
+            //TODO:
+        }
+        private void removeDetails(MovieHolder theMovie) {
+
+        }
+        private void removeTrailers(MovieHolder theMovie) {
+            //TODO:
+        }
+        private void removeReviews(MovieHolder theMovie) {
+            //TODO:
         }
 
         /**

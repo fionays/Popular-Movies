@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 
 /**
- * A fragment which contains the grid view.
+ * A fragment which contains the grid view to display movies fetched form server.
  * TODO: Why parcelable is used in this project? IPC and Intent?
  */
     public class MovieFragment extends Fragment {
@@ -37,17 +37,14 @@ import java.util.ArrayList;
         private ImageAdapter imageAdapter;
 
         private ArrayList<MovieHolder> movieList = new ArrayList<MovieHolder>();
-        // Used to construct array list.
-        private MovieHolder[] movieHolders;
 
-
-        public MovieFragment() {
-        }
+        public MovieFragment() {}
 
         @Override
         public void onCreate(Bundle onSavedInstanceStates) {
             super.onCreate(onSavedInstanceStates);
-            setHasOptionsMenu(true);
+            //setHasOptionsMenu(true);
+
              //Restore the movie list if it was saved.
             //if(onSavedInstanceStates == null || !onSavedInstanceStates.containsKey(KEY)) {
               // movieList = new ArrayList<MovieHolder>(Arrays.asList(movieHolders));
@@ -160,7 +157,7 @@ import java.util.ArrayList;
                     String overview = movieJson.getString(OVERVIEW);
                     String releaseDate = movieJson.getString(RELEASE_DATE);
                     int voteAverage = movieJson.getInt(VOTE_AVERAGE);
-                    int id = movieJson.getInt(ID);
+                    long id = movieJson.getInt(ID);
 
                     MovieHolder movieHolder = new MovieHolder(posterPath, originalTitle, overview
                                         , releaseDate, voteAverage, id);

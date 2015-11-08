@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -23,7 +24,8 @@ public class MainActivity extends AppCompatActivity {
             // Show right fragment according to the sorted preference
             if (Utility.isSortFavorite(this)) {
                 // Go to FavoriteFragment to fetch movies from database
-
+                fragmentTransaction.add(R.id.container, new FavoriteFragment()).commit();
+                Log.v("Log:","Entering FavoriteFragment");
             } else {
                 // Go to MovieFragment to fetch movies from server
                 fragmentTransaction.add(R.id.container, new MovieFragment()).commit();
