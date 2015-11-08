@@ -85,7 +85,10 @@ public class DetailActivity extends AppCompatActivity {
                 release.setText(theMovie.releaseDate);
                 vote.setText(Integer.toString(theMovie.voteAverage));
                 overView.setText(theMovie.overview);
-                Picasso.with(getActivity()).load(theMovie.posterPath).into(poster);
+                Picasso.with(getActivity()).load(theMovie.posterPath)
+                        .placeholder(R.drawable.image_holder)
+                        .error(R.drawable.image_holder)
+                        .into(poster);
 
                 // If the "favorite" field is true, means right now we are viewing the favorite lists.
                 // Then mark the checkbox.

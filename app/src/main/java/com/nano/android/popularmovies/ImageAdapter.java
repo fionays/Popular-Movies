@@ -50,7 +50,10 @@ public class ImageAdapter extends ArrayAdapter<MovieHolder> {
         //imageView = (ImageView)convertView.getTag();
 
         // Adapter load image (get resource) via Picasso into ImageView.
-        Picasso.with(getContext()).load(movieHolder.posterPath).into(imageView);
+        Picasso.with(getContext()).load(movieHolder.posterPath)
+                .placeholder(R.drawable.image_holder)
+                .error(R.drawable.image_holder)
+                .into(imageView);
         // Still need to return a convertView?
         return convertView;
 

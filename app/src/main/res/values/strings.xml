@@ -5,6 +5,15 @@
     <string name="title_activity_detail">DetailActivity</string>
     <string name="title_activity_settings">SettingsActivity</string>
 
+    <!--String for dummy data-->
+    <string name="title">Title</string>
+    <string name="release_date">Release Date</string>
+    <string name="vote">Vote</string>
+    <string name="overview">Overview</string>
+    <string name="author">Author</string>
+    <string name="content">Content</string>
+    <string name="trailer_name">Content</string>
+
     <!--Preference -->
     <!--Tile, key, default entry value and entry value for sort preference-->
     <string name="pref_sort_title" translable="false">Sort</string>

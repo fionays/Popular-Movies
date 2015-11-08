@@ -19,6 +19,7 @@
             android:layout_gravity="top"
             android:background="@color/bright_foreground_disabled_material_light"
             android:textSize="30sp"
+            android:text="@string/title"
             android:gravity="center_vertical"
             android:padding="@dimen/abc_text_size_caption_material"/>
 
@@ -37,6 +38,7 @@
 
             <TextView
                 android:id="@+id/release_date"
+                android:text="@string/release_date"
                 android:layout_width="@dimen/release_width_mobile"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
@@ -48,6 +50,7 @@
 
             <TextView
                 android:id="@+id/vote_average"
+                android:text="@string/vote"
                 android:layout_width="@dimen/vote_width_mobile"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/release_date"
@@ -67,6 +70,7 @@
 
         <TextView
             android:id="@+id/overview"
+            android:text="@string/overview"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"/>
 

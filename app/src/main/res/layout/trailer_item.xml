@@ -16,6 +16,7 @@
 
     <TextView
         android:id="@+id/movie_trailer_name"
+        android:text="@string/trailer_name"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:paddingLeft="20dp"/>
