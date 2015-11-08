@@ -302,6 +302,18 @@ public class FavoritedProvider extends ContentProvider{
                         FavoritedContract.FavoriteEntry.TABLE_NAME + "'");
                 break;
             }
+            case FAVORITE_MOVIE_ID: {
+                long sMovieId = FavoritedContract.FavoriteEntry.getMovieIdFromUri(uri);
+                rowsDeleted = db.delete(
+                        FavoritedContract.FavoriteEntry.TABLE_NAME,
+                        FavoritedContract.FavoriteEntry.COLUMN_MOVIE_ID + " =?",
+                        new String[]{String.valueOf(sMovieId)}
+                );
+                // Reset _ID
+                db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" +
+                        FavoritedContract.FavoriteEntry.TABLE_NAME + "'");
+                break;
+            }
             case TRAILER: {
                 rowsDeleted = db.delete(
                         FavoritedContract.TrailerEntry.TABLE_NAME, selection, selectionArgs);

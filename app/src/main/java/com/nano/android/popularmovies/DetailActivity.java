@@ -22,6 +22,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nano.android.popularmovies.data.FavoritedContract;
 import com.squareup.picasso.Picasso;
@@ -115,9 +116,16 @@ public class DetailActivity extends AppCompatActivity {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     // If new state is checked, insert the movie into database.
-                    addMovie(theMovie);
                     // Otherwise, delete the record from favorite table
-                    removeMovie(theMovie);
+                    if (isChecked) {
+                        addMovie(theMovie);
+                        Toast.makeText(getActivity(), "Added to favorites!", Toast.LENGTH_LONG)
+                                .show();
+                    } else {
+                        removeMovie(theMovie);
+                        Toast.makeText(getActivity(), "Removed from favorites", Toast.LENGTH_LONG)
+                                .show();
+                    }
                 }
             });
 
@@ -275,11 +283,13 @@ public class DetailActivity extends AppCompatActivity {
             addTrailers(theMovie);
             addReviews(theMovie);
         }
+
         private void removeMovie(MovieHolder theMovie) {
             removeDetails(theMovie);
             removeTrailers(theMovie);
             removeReviews(theMovie);
         }
+
         private void addDetails(MovieHolder movie) {
             ContentValues insertValues = new ContentValues();
             insertValues.put(FavoritedContract.FavoriteEntry.COLUMN_POSTER, movie.posterPath);
@@ -331,19 +341,25 @@ public class DetailActivity extends AppCompatActivity {
 
                     valuesArray[i] = values;
                 }
-
                 getActivity().getContentResolver().bulkInsert(tableUri, valuesArray);
             }
         }
 
         private void removeDetails(MovieHolder theMovie) {
-
+            Uri uri = FavoritedContract.FavoriteEntry.buildFavoriteWithMovieId(theMovie.movieId);
+            getActivity().getContentResolver().delete(uri, null, null);
         }
         private void removeTrailers(MovieHolder theMovie) {
-            //TODO:
+            if (theMovie.trailers.size() > 0) {
+                Uri uri = FavoritedContract.TrailerEntry.buildTrailerWithMovieId(theMovie.movieId);
+                getActivity().getContentResolver().delete(uri, null, null);
+            }
         }
         private void removeReviews(MovieHolder theMovie) {
-            //TODO:
+            if (theMovie.reviews.size() > 0) {
+                Uri uri = FavoritedContract.ReviewEntry.buildReviewWithMovieId(theMovie.movieId);
+                getActivity().getContentResolver().delete(uri, null, null);
+            }
         }
 
         /**
