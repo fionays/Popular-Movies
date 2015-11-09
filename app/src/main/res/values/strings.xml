@@ -13,6 +13,7 @@
     <string name="author">Author</string>
     <string name="content">Content</string>
     <string name="trailer_name">Content</string>
+    <string name="action_share">Share</string>
 
     <!--Preference -->
     <!--Tile, key, default entry value and entry value for sort preference-->

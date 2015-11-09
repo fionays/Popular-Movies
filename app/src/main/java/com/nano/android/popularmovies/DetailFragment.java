@@ -2,14 +2,20 @@ package com.nano.android.popularmovies;
 
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -54,6 +60,8 @@ public class DetailFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle onSavedInstanceState) {
+        setHasOptionsMenu(true);
+
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
         Bundle bundle = getArguments();
@@ -86,19 +94,27 @@ public class DetailFragment extends Fragment
 
         return rootView;
     }
-
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        // If new state is checked, insert the movie into database.
-        // Otherwise, delete the record from favorite table
-        if (isChecked) {
-            addMovie();
-            Toast.makeText(getActivity(), "Added to favorites!", Toast.LENGTH_LONG)
-                    .show();
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        Log.v(LOG_CAT, "Detail Fragment: Create option menu.");
+
+        // Inflate the menu, adds items to the action bar if it is present
+        inflater.inflate(R.menu.detail_fragment_menu, menu);
+
+        // Get the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        // Fetch and store hareActionProvider
+        ShareActionProvider shareActionProvider =
+                (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+        // Attach an itent to this shareActionProvider. Update any time when users
+        // select new data
+        if (shareActionProvider != null) {
+            shareActionProvider.setShareIntent(createShareTrailer());
         } else {
-            removeMovie();
-            Toast.makeText(getActivity(), "Removed from favorites", Toast.LENGTH_LONG)
-                    .show();
+            Log.d(LOG_CAT, "Share Action Privider is null.");
         }
     }
 
@@ -120,6 +136,30 @@ public class DetailFragment extends Fragment
             fetchOnline();
         }
 
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        // If new state is checked, insert the movie into database.
+        // Otherwise, delete the record from favorite table
+        if (isChecked) {
+            addMovie();
+            Toast.makeText(getActivity(), "Added to favorites!", Toast.LENGTH_LONG)
+                    .show();
+        } else {
+            removeMovie();
+            Toast.makeText(getActivity(), "Removed from favorites", Toast.LENGTH_LONG)
+                    .show();
+        }
+    }
+
+    private Intent createShareTrailer() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        String trailerURL = "https://www.youtube.com/watch?v=" + theMovie.trailers.get(0).key;
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, trailerURL);
+        return shareIntent;
     }
 
     private void fetchOnline() {
