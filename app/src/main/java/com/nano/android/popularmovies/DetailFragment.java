@@ -4,6 +4,7 @@ package com.nano.android.popularmovies;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -61,6 +62,7 @@ public class DetailFragment extends Fragment
 
             ButterKnife.bind(this, rootView);
             title.setText(theMovie.originalTitle);
+            title.setBackgroundColor(Color.GRAY);
             release.setText(theMovie.releaseDate);
             vote.setText(Integer.toString(theMovie.voteAverage));
             overView.setText(theMovie.overview);
@@ -68,7 +70,7 @@ public class DetailFragment extends Fragment
                     .placeholder(R.drawable.image_holder)
                     .error(R.drawable.image_holder)
                     .into(poster);
-
+            favCheckBox.setVisibility(View.VISIBLE);
             // If the "favorite" field is true, means right now we are viewing the favorite lists.
             // Then mark the checkbox.
             // Otherwise, the movie is downloaded from server. Need to query fav table to check
