@@ -27,7 +27,8 @@ public class Utility {
         return sortPref;
     }
 
-    public static boolean isSortFavorite(Context context, String sortPref) {
+    public static boolean isSortFavorite(Context context) {
+        String sortPref = getPreferredSort(context);
         return sortPref.equals(context.getString(R.string.pref_sort_favorites));
     }
 

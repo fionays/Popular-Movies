@@ -70,12 +70,6 @@ public class FetchTrailerReview extends AsyncTask<String, Void, MovieHolder> {
             // Add each trailer to the trailers List.
             theMovie.trailers.add(trailer);
         }
-
-        // Test
-        Log.v(TASK_LOG_TAG, "The number of trailers: " + count);
-        for (MovieHolder.Trailer t : theMovie.trailers) {
-            Log.v(TASK_LOG_TAG, "Trailer infor: " + t);
-        }
     }
 
     /**
@@ -107,12 +101,6 @@ public class FetchTrailerReview extends AsyncTask<String, Void, MovieHolder> {
             MovieHolder.Review review = new MovieHolder.Review(movieID, author, content);
 
             theMovie.reviews.add(review);
-        }
-
-        // Test
-        Log.v(TASK_LOG_TAG, "The number of reviews: " + count);
-        for (MovieHolder.Review r : theMovie.reviews) {
-            Log.v(TASK_LOG_TAG, "Reviews infor: " + r);
         }
     }
 
@@ -146,8 +134,6 @@ public class FetchTrailerReview extends AsyncTask<String, Void, MovieHolder> {
                     .appendQueryParameter(API_KEY, params[0])
                     .build();
 
-            Log.v(TASK_LOG_TAG, "Built trailer URL " + builtTrailerUri.toString());
-
             // Construct URL
             URL trailerURL = new URL(builtTrailerUri.toString());
 
@@ -172,7 +158,6 @@ public class FetchTrailerReview extends AsyncTask<String, Void, MovieHolder> {
             if(buffer == null) {return null;}
 
             trailersJsonStr = buffer.toString();
-            Log.v(TASK_LOG_TAG, "Trailer JSON String: " + trailersJsonStr);
         } catch(IOException e) {
             Log.e(TASK_LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
@@ -200,8 +185,6 @@ public class FetchTrailerReview extends AsyncTask<String, Void, MovieHolder> {
                     .appendQueryParameter(API_KEY, params[0])
                     .build();
 
-            Log.v(TASK_LOG_TAG, "Build review URI: " + builtReviewUri.toString());
-
             // Construct URL
             URL reviewURL = new URL(builtReviewUri.toString());
 
@@ -228,8 +211,6 @@ public class FetchTrailerReview extends AsyncTask<String, Void, MovieHolder> {
 
             // Get JSON String out of buffer
             reviewsJsonStr = buffer.toString();
-
-            Log.v(TASK_LOG_TAG, "Reviews JSON string: " + reviewsJsonStr);
         } catch (IOException e) {
             Log.e(TASK_LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
@@ -247,8 +228,6 @@ public class FetchTrailerReview extends AsyncTask<String, Void, MovieHolder> {
                 }
             }
         }
-
-
         // Extract trailers and reviews from JSON string and add them to the movie
         try {
             getTrailersFromJson(trailersJsonStr);

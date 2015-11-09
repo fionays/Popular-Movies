@@ -95,11 +95,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, MovieHolder[]> {
             movieHolders[i] = movieHolder;
         }
 
-        // For Test
-        Log.v(TASK_LOG_TAG, "The number of movies: " + numbers);
-        for (MovieHolder m : movieHolders) {
-            Log.v(TASK_LOG_TAG, "Movie info: " + m);
-        }
         return movieHolders;
     }
 
@@ -135,9 +130,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, MovieHolder[]> {
                     .appendQueryParameter(API_KEY, BuildConfig.THE_MOVIE_DB_API_KEY)
                     .build();
 
-            // To check the Uri was built correctly.
-            Log.v(TASK_LOG_TAG, "Built URI " + builtUri.toString());
-
             // Construct the URL
             URL myUrl = new URL(builtUri.toString());
 
@@ -169,8 +161,6 @@ public class FetchMovieTask extends AsyncTask<String, Void, MovieHolder[]> {
             // Get the JSON data out of String Buffer (as string).
             movieJsonStr = buffer.toString();
 
-            // Check if getting the JSON String correctly.
-            Log.v(TASK_LOG_TAG, "Movie JSON String: " + movieJsonStr);
 
         } catch(IOException e) {
             // Log any errors if the movie data does not get successfully.

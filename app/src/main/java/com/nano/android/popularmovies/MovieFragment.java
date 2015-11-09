@@ -27,33 +27,34 @@ import java.util.Vector;
     public class MovieFragment extends Fragment {
 
         private static final String LOG_TAG = MovieFragment.class.getSimpleName();
-        private static final String KEY = "movie";
+        private static final String KEY = "movie_list";
         private ImageAdapter imageAdapter;
+        private boolean isRetained = false;
 
-        private ArrayList<MovieHolder> movieList = new ArrayList<MovieHolder>();
+        private ArrayList<MovieHolder> movieList;
 
         public MovieFragment() {}
 
         @Override
         public void onCreate(Bundle onSavedInstanceStates) {
             super.onCreate(onSavedInstanceStates);
-            //setHasOptionsMenu(true);
 
-             //Restore the movie list if it was saved.
-            //if(onSavedInstanceStates == null || !onSavedInstanceStates.containsKey(KEY)) {
-              // movieList = new ArrayList<MovieHolder>(Arrays.asList(movieHolders));
-            //} else {
-                // Create a new ArrayList based on the array of parcelable MovieHolder object.
-                //movieList = onSavedInstanceStates.getParcelableArrayList("movie");
-           // }
-       // }
+            if(onSavedInstanceStates == null || !onSavedInstanceStates.containsKey(KEY)) {
+                //Create a new ArrayList based on the array of parcelable MovieHolder object.
+               movieList = new ArrayList<MovieHolder>();
+            } else {
+                //Restore the movie list if it was saved.
+                movieList = onSavedInstanceStates.getParcelableArrayList(KEY);
+                isRetained = true;
+            }
+        }
 
-        //@Override
-        //public void onSaveInstanceState(Bundle states) {
-            // Save the Parcelable movieList into the mapping of this bundle
+        @Override
+        public void onSaveInstanceState(Bundle states) {
+             //Save the Parcelable movieList data into the mapping of this bundle
             // if any configuration change, like rotation.
-            //states.putParcelableArrayList(KEY, movieList);
-            //super.onSaveInstanceState(states);
+            states.putParcelableArrayList(KEY, movieList);
+            super.onSaveInstanceState(states);
         }
 
         @Override
@@ -85,18 +86,18 @@ import java.util.Vector;
         @Override
         public void onStart() {
             super.onStart();
-            String sortPref = Utility.getPreferredSort(getActivity());
-
-            // Retrieve movie from tababase
-            if (Utility.isSortFavorite(getActivity(),sortPref)) {
+            if (Utility.isSortFavorite(getActivity())) {
                 retrieveFromDatabase();
             } else {
-                // Fetch movies from server if sort by popularity and rate
-                FetchMovieTask fetchMovieTask = new FetchMovieTask(getActivity(), imageAdapter);
-                fetchMovieTask.execute(sortPref);
+                fetchFromServer();
             }
+
         }
 
+    private void fetchFromServer() {
+        FetchMovieTask fetchMovieTask = new FetchMovieTask(getActivity(), imageAdapter);
+        fetchMovieTask.execute(Utility.getPreferredSort(getActivity()));
+    }
     /**
      * Create an array of MovieHolder Objects for each ContentValues
      * @param vector An vector of ContentValues
