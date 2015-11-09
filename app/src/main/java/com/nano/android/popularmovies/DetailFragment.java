@@ -31,7 +31,8 @@ import butterknife.ButterKnife;
 public class DetailFragment extends Fragment {
 
     private final String LOG_CAT = DetailFragment.class.getSimpleName();
-    private final String KEY = "movie";
+    private final String KEY = "SCROLLVIEW_POSITION";
+    private View rootView;
 
     private MovieHolder theMovie;
 
@@ -49,9 +50,31 @@ public class DetailFragment extends Fragment {
     public DetailFragment() {}
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Save the position of the scrollview
+        outState.putIntArray(KEY,
+                new int[] {rootView.getScrollX(), rootView.getScrollY()});
+    }
+
+    @Override
+    public void onCreate(Bundle onSaveInstanceState) {
+        super.onCreate(onSaveInstanceState);
+        final int[] position = onSaveInstanceState.getIntArray(KEY);
+        if (position != null) {
+            rootView.post(new Runnable() {
+                @Override
+                public void run() {
+                    rootView.scrollTo(position[0], position[1]);
+                }
+            });
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle onSavedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
         // Receive the bundle sent by the activity
         Bundle bundle = getArguments();
