@@ -7,6 +7,7 @@ import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,8 +38,10 @@ import java.util.Vector;
 
         @Override
         public void onCreate(Bundle onSavedInstanceStates) {
-            super.onCreate(onSavedInstanceStates);
 
+            Log.v(LOG_TAG, "MovieFragment: Entering onCreate()");
+
+            super.onCreate(onSavedInstanceStates);
             if(onSavedInstanceStates == null || !onSavedInstanceStates.containsKey(KEY)) {
                 //Create a new ArrayList based on the array of parcelable MovieHolder object.
                movieList = new ArrayList<MovieHolder>();
@@ -60,6 +63,8 @@ import java.util.Vector;
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                 Bundle savedInstanceState) {
+            Log.v(LOG_TAG, "MovieFragment: Entering onCreateView()");
+
             View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
 
             // Create the ImageAdapter
@@ -85,6 +90,8 @@ import java.util.Vector;
 
         @Override
         public void onStart() {
+            Log.v(LOG_TAG, "MovieFragment: Entering onStart()");
+
             super.onStart();
             if (Utility.isSortFavorite(getActivity())) {
                 retrieveFromDatabase();

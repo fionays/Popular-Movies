@@ -1,9 +1,13 @@
-<FrameLayout
+<!--MovieFragment is added to MainActivity statically in xml -->
+<fragment
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/container"
+    android:id="@+id/fragment_movie"
+    android:name="com.nano.android.popularmovies.MovieFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    tools:ignore="MergeRootFrame"
+    android:layout_marginLeft="1dp"
+    android:layout_marginRight="1dp"
+    tools:context="com.nano.android.popularmovies.MovieFragment"
+    tools:laout="@layout/fragment_moive"
  />

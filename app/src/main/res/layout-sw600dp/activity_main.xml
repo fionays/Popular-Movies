@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    android:divider="?android:attr/dividerHorizontal"
+    tools:context="com.nano.android.popularmovies.DetailActivity"
+    >
+    <!--
+    This is a two panel layout for the Items Master/Details flow.
+    -->
+
+    <!--MovieFragment is added to MainActivity statically in xml -->
+    <fragment
+        android:id="@+id/fragment_movie"
+        android:name="com.nano.android.popularmovies.MovieFragment"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        tools:laout="@layout/fragment_moive"
+         />
+
+    <!--DetailFragment will be added dynamically, now just add a container-->
+    <FrameLayout
+        android:id="@+id/movie_detail_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="4"/>
+
+</LinearLayout>

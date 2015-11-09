@@ -1,6 +1,7 @@
 package com.nano.android.popularmovies;
 
 
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -28,10 +29,11 @@ import butterknife.ButterKnife;
  * A placeholder fragment containing a simple view.
  */
 
-public class DetailFragment extends Fragment {
+public class DetailFragment extends Fragment
+        implements CompoundButton.OnCheckedChangeListener{
 
     private final String LOG_CAT = DetailFragment.class.getSimpleName();
-    private final String KEY = "movie";
+    private final String KEY = "SCROLLVIEW_POSITION";
 
     private MovieHolder theMovie;
 
@@ -48,55 +50,57 @@ public class DetailFragment extends Fragment {
 
     public DetailFragment() {}
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle onSavedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
-        // Receive the bundle sent by the activity
-        Bundle bundle = getArguments();
+        Intent intent = getActivity().getIntent();
+        theMovie = intent.getParcelableExtra("MovieHolder");
 
-        if (bundle != null) {
-            theMovie = bundle.getParcelable("MovieHolder");
-            ButterKnife.bind(this, rootView);
-            title.setText(theMovie.originalTitle);
-            release.setText(theMovie.releaseDate);
-            vote.setText(Integer.toString(theMovie.voteAverage));
-            overView.setText(theMovie.overview);
-            Picasso.with(getActivity()).load(theMovie.posterPath)
-                    .placeholder(R.drawable.image_holder)
-                    .error(R.drawable.image_holder)
-                    .into(poster);
-
-            // If the "favorite" field is true, means right now we are viewing the favorite lists.
-            // Then mark the checkbox.
-            // Otherwise, the movie is downloaded from server. Need to query fav table to check
-            // if it has been added to fav table.
-            if (theMovie.favorite || isMovieAdded()) {
-                checked = true;
-            }
-            favCheckBox.setChecked(checked);
+        if (intent == null || theMovie == null) {
+            return null;
         }
 
-        favCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // If new state is checked, insert the movie into database.
-                // Otherwise, delete the record from favorite table
-                if (isChecked) {
-                    addMovie();
-                    Toast.makeText(getActivity(), "Added to favorites!", Toast.LENGTH_LONG)
-                            .show();
-                } else {
-                    removeMovie();
-                    Toast.makeText(getActivity(), "Removed from favorites", Toast.LENGTH_LONG)
-                            .show();
-                }
-            }
-        });
+        ButterKnife.bind(this, rootView);
+        title.setText(theMovie.originalTitle);
+        release.setText(theMovie.releaseDate);
+        vote.setText(Integer.toString(theMovie.voteAverage));
+        overView.setText(theMovie.overview);
+        Picasso.with(getActivity()).load(theMovie.posterPath)
+                .placeholder(R.drawable.image_holder)
+                .error(R.drawable.image_holder)
+                .into(poster);
+
+        // If the "favorite" field is true, means right now we are viewing the favorite lists.
+        // Then mark the checkbox.
+        // Otherwise, the movie is downloaded from server. Need to query fav table to check
+        // if it has been added to fav table.
+        if (theMovie.favorite || isMovieAdded()) {
+            checked = true;
+        }
+        favCheckBox.setChecked(checked);
+
+        favCheckBox.setOnCheckedChangeListener(this);
 
 
         return rootView;
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        // If new state is checked, insert the movie into database.
+        // Otherwise, delete the record from favorite table
+        if (isChecked) {
+            addMovie();
+            Toast.makeText(getActivity(), "Added to favorites!", Toast.LENGTH_LONG)
+                    .show();
+        } else {
+            removeMovie();
+            Toast.makeText(getActivity(), "Removed from favorites", Toast.LENGTH_LONG)
+                    .show();
+        }
     }
 
     @Override
@@ -105,6 +109,10 @@ public class DetailFragment extends Fragment {
         Log.v(LOG_CAT, "DetailFragment entering onStart");
 
         super.onStart();
+
+        // For two-pane model, DetailFragment will not receive any intent at the first time, because
+        // no movie is selected. The theMovie would be an null object.
+        if (theMovie == null) {return;}
 
         // If entering DetailActivity from favorite movie list
         if (theMovie.favorite) {
