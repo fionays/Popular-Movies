@@ -7,7 +7,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MovieFragment.CallBack {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private boolean mTwoPane;
 
@@ -74,4 +74,29 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onItemSelected(MovieHolder theMovie) {
+
+        Log.v(LOG_TAG, "Talking to MainActivity");
+
+        // 1) Replace the DetailFragment and pass the MovieHolder object to it through Bundle
+        if(mTwoPane) {
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(DetailFragment.MOVIE, theMovie);
+
+            DetailFragment detailFragment = new DetailFragment();
+            detailFragment.setArguments(bundle);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.movie_detail_container, detailFragment, DETAIL_FRAGMENT_TAG)
+                    .commit();
+
+            Log.v(LOG_TAG, "On tablet, pass movie to DetailFragment");
+        } else {
+            // 2) Launch DetailAcrivity by sending Intent
+            Intent intent = new Intent(this, DetailActivity.class)
+                    .putExtra(DetailFragment.MOVIE, theMovie);
+            startActivity(intent);
+        }
+    }
 }

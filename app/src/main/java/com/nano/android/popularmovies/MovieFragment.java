@@ -1,7 +1,6 @@
 package com.nano.android.popularmovies;
 
 import android.content.ContentValues;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
@@ -20,7 +19,6 @@ import com.nano.android.popularmovies.data.FavoritedContract;
 import java.util.ArrayList;
 import java.util.Vector;
 
-
 /**
  * A fragment which contains the grid view to display movies fetched form server.
  * TODO: Why parcelable is used in this project? IPC and Intent?
@@ -33,6 +31,17 @@ import java.util.Vector;
         private boolean isRetained = false;
 
         private ArrayList<MovieHolder> movieList;
+
+        /**
+        * A callback interface that all activities containing this fragment must implement.
+        * This mechanism allows activities to be notified of item selections.
+        * Let the MovieFragment talk to the MainActivity.
+        */
+         public interface CallBack {
+
+             // DetailFragmentCallBack for when an item has been selected.
+              void onItemSelected(MovieHolder theMovie);
+        }
 
         public MovieFragment() {}
 
@@ -79,9 +88,16 @@ import java.util.Vector;
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     MovieHolder clickedMovie = imageAdapter.getItem(position);
-                    Intent myIntent = new Intent(getActivity(), DetailActivity.class);
-                    myIntent.putExtra("MovieHolder", clickedMovie);
-                    startActivity(myIntent);
+
+                    // Talk to the MainActivity which implements the Callback interface and
+                    // invoke the callback method.
+                    // Pass the selected movie object to MainActivity and let it decide how to
+                    // dispatch the event.
+                    // 1) on phone, launch DetailActivity, OR
+                    // 2) on tablet, replace DetailFragment
+                    ((CallBack)getActivity()).onItemSelected(clickedMovie);
+
+                    Log.v(LOG_TAG, "Select one movie at position " + position);
                 }
             });
 

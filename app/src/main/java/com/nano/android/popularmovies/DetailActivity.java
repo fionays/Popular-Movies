@@ -9,7 +9,6 @@ import android.util.Log;
 public class DetailActivity extends AppCompatActivity {
 
     private final String LOG_TAG = DetailActivity.class.getSimpleName();
-    private final String DETAIL_FRAGMENT_TAG = "detail_fragment_tag";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,11 +19,16 @@ public class DetailActivity extends AppCompatActivity {
 
             Log.v(LOG_TAG, "Create a new DetailFragment and start a new transaction");
 
-            // Add fragment to the activity
+            // Receive intent from MovieFragment, and pass it to DetailFragment as Bundle
+            MovieHolder theMovie = getIntent().getParcelableExtra(DetailFragment.MOVIE);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(DetailFragment.MOVIE, theMovie);
+
             DetailFragment detailFragment = new DetailFragment();
+            detailFragment.setArguments(bundle);
+
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.movie_detail_container, detailFragment).commit();
-
         }
     }
 }

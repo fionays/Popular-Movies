@@ -1,13 +1,12 @@
 package com.nano.android.popularmovies;
 
 
-import android.content.Intent;
-import android.support.v4.app.Fragment;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +32,7 @@ public class DetailFragment extends Fragment
         implements CompoundButton.OnCheckedChangeListener{
 
     private final String LOG_CAT = DetailFragment.class.getSimpleName();
-    private final String KEY = "SCROLLVIEW_POSITION";
+    static final String MOVIE = "movie";
 
     private MovieHolder theMovie;
 
@@ -56,34 +55,32 @@ public class DetailFragment extends Fragment
                              Bundle onSavedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
-        Intent intent = getActivity().getIntent();
-        theMovie = intent.getParcelableExtra("MovieHolder");
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            theMovie = bundle.getParcelable(MOVIE);
 
-        if (intent == null || theMovie == null) {
-            return null;
+            ButterKnife.bind(this, rootView);
+            title.setText(theMovie.originalTitle);
+            release.setText(theMovie.releaseDate);
+            vote.setText(Integer.toString(theMovie.voteAverage));
+            overView.setText(theMovie.overview);
+            Picasso.with(getActivity()).load(theMovie.posterPath)
+                    .placeholder(R.drawable.image_holder)
+                    .error(R.drawable.image_holder)
+                    .into(poster);
+
+            // If the "favorite" field is true, means right now we are viewing the favorite lists.
+            // Then mark the checkbox.
+            // Otherwise, the movie is downloaded from server. Need to query fav table to check
+            // if it has been added to fav table.
+            if (theMovie.favorite || isMovieAdded()) {
+                checked = true;
+            }
+            favCheckBox.setChecked(checked);
+            favCheckBox.setOnCheckedChangeListener(this);
         }
 
-        ButterKnife.bind(this, rootView);
-        title.setText(theMovie.originalTitle);
-        release.setText(theMovie.releaseDate);
-        vote.setText(Integer.toString(theMovie.voteAverage));
-        overView.setText(theMovie.overview);
-        Picasso.with(getActivity()).load(theMovie.posterPath)
-                .placeholder(R.drawable.image_holder)
-                .error(R.drawable.image_holder)
-                .into(poster);
-
-        // If the "favorite" field is true, means right now we are viewing the favorite lists.
-        // Then mark the checkbox.
-        // Otherwise, the movie is downloaded from server. Need to query fav table to check
-        // if it has been added to fav table.
-        if (theMovie.favorite || isMovieAdded()) {
-            checked = true;
-        }
-        favCheckBox.setChecked(checked);
-
-        favCheckBox.setOnCheckedChangeListener(this);
-
+        Log.v(LOG_CAT, "Bundle passed by MainActivity is null!");
 
         return rootView;
     }
