@@ -22,6 +22,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,6 +46,7 @@ public class DetailFragment extends Fragment
 
     private boolean checked = false;
 
+    @Bind(R.id.scrollView)ScrollView scrollView;
     @Bind(R.id.title)TextView title;
     @Bind(R.id.release_date)TextView release;
     @Bind(R.id.vote_average)TextView vote;
@@ -154,6 +156,11 @@ public class DetailFragment extends Fragment
     }
 
     private Intent createShareTrailer() {
+
+        // Handle the IndexOutOfBoundsException when trailers ArrayList is still empty.
+        // It happens when it will take a longer time to fetch trailer from server.
+        if (theMovie.trailers.size() == 0) {return null;}
+
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         String trailerURL = "https://www.youtube.com/watch?v=" + theMovie.trailers.get(0).key;
