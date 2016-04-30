@@ -6,8 +6,6 @@
     android:name="com.nano.android.popularmovies.MovieFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="1dp"
-    android:layout_marginRight="1dp"
     tools:context="com.nano.android.popularmovies.MovieFragment"
     tools:laout="@layout/fragment_moive"
  />

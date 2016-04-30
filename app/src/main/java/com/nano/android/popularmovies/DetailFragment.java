@@ -8,9 +8,13 @@ import android.database.DatabaseUtils;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.NestedScrollView;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,7 +26,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,13 +43,16 @@ public class DetailFragment extends Fragment
         implements CompoundButton.OnCheckedChangeListener{
 
     private final String LOG_CAT = DetailFragment.class.getSimpleName();
+    private final String SCROLL_POSITION = "position";
     static final String MOVIE = "movie";
 
     private MovieHolder theMovie;
 
     private boolean checked = false;
 
-    @Bind(R.id.scrollView)ScrollView scrollView;
+    @Bind(R.id.collapsing_toolbar_layout)CollapsingToolbarLayout cToolbarLayout;
+    @Bind(R.id.app_bar)Toolbar toolbar;
+    @Bind(R.id.nestedScrollView)NestedScrollView nestedScrollView;
     @Bind(R.id.title)TextView title;
     @Bind(R.id.release_date)TextView release;
     @Bind(R.id.vote_average)TextView vote;
@@ -58,19 +64,34 @@ public class DetailFragment extends Fragment
 
     public DetailFragment() {}
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Save the trailers and reviews so that it will not
+
+        // Save the scroll position
+        outState.putIntArray(SCROLL_POSITION,
+                new int[]{nestedScrollView.getScrollX(), nestedScrollView.getScrollY()});
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle onSavedInstanceState) {
-        setHasOptionsMenu(true);
+                             Bundle onSaveInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        setHasOptionsMenu(true);
 
+        // Retrieve arguments from bundle
         Bundle bundle = getArguments();
         if (bundle != null) {
             theMovie = bundle.getParcelable(MOVIE);
 
             ButterKnife.bind(this, rootView);
+            // Set the toolbar to act as ActionBar for DetailActivity window
+            ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
+            ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            cToolbarLayout.setTitle(theMovie.originalTitle);
             title.setText(theMovie.originalTitle);
             title.setBackgroundColor(Color.GRAY);
             release.setText(theMovie.releaseDate);
@@ -92,10 +113,40 @@ public class DetailFragment extends Fragment
             favCheckBox.setOnCheckedChangeListener(this);
         }
 
-        Log.v(LOG_CAT, "Bundle passed by MainActivity is null!");
-
+//        // Restore the scroll view position.
+//        if (onSaveInstanceState != null ) {
+//            final int[] position = onSaveInstanceState.getIntArray(SCROLL_POSITION);
+//            if (position != null ) {
+//                scrollView.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.v(LOG_CAT,"Start Runnable");
+//                        scrollView.scrollTo(position[0], position[1]);
+//                    }
+//                });
+//            }
+//        }
         return rootView;
     }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // Restore the scroll view position.
+        if (savedInstanceState != null ) {
+            final int[] position = savedInstanceState.getIntArray(SCROLL_POSITION);
+            if (position != null ) {
+                nestedScrollView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.v(LOG_CAT,"Start Runnable");
+                        nestedScrollView.scrollTo(position[0], position[1]);
+                    }
+                });
+            }
+        }
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 
@@ -122,9 +173,6 @@ public class DetailFragment extends Fragment
 
     @Override
     public void onStart() {
-
-        Log.v(LOG_CAT, "DetailFragment entering onStart");
-
         super.onStart();
 
         // For two-pane model, DetailFragment will not receive any intent at the first time, because
@@ -201,6 +249,7 @@ public class DetailFragment extends Fragment
             } while (cur.moveToNext());
 
             // display trailers
+            trailersReviewsContainer.removeAllViews();
             for (final MovieHolder.Trailer trailer : theMovie.trailers) {
                 View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_item, null);
                 // Set the trailer title

@@ -14,6 +14,7 @@
     <string name="content">Content</string>
     <string name="trailer_name">Content</string>
     <string name="action_share">Share</string>
+    <string name="action_back">Back</string>
 
     <!--Preference -->
     <!--Tile, key, default entry value and entry value for sort preference-->

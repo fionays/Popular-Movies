@@ -6,6 +6,8 @@ import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +20,9 @@ import com.nano.android.popularmovies.data.FavoritedContract;
 
 import java.util.ArrayList;
 import java.util.Vector;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 /**
  * A fragment which contains the grid view to display movies fetched form server.
@@ -32,6 +37,8 @@ import java.util.Vector;
 
         private ArrayList<MovieHolder> movieList;
 
+        @Bind(R.id.app_bar)Toolbar toolbarMain;
+        @Bind(R.id.gridview_movie)GridView gridView;
         /**
         * A callback interface that all activities containing this fragment must implement.
         * This mechanism allows activities to be notified of item selections.
@@ -72,14 +79,17 @@ import java.util.Vector;
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                 Bundle savedInstanceState) {
-            Log.v(LOG_TAG, "MovieFragment: Entering onCreateView()");
 
             View rootView = inflater.inflate(R.layout.fragment_movie, container, false);
+            ButterKnife.bind(this, rootView);
+
+            // Set the toolbar to act as ActionBar for DetailActivity window
+            ((AppCompatActivity)getActivity()).setSupportActionBar(toolbarMain);
+            Log.i(LOG_TAG, (toolbarMain == null) ? "toolbar is null" : "toolbar is not null");
+            toolbarMain.setTitle(R.string.app_name);
 
             // Create the ImageAdapter
             imageAdapter = new ImageAdapter(getActivity(), movieList);
-            // Get the GridView.
-            GridView gridView = (GridView)rootView.findViewById(R.id.gridview_movie);
             // Attached the ImageAdapter to the GridView
             gridView.setAdapter(imageAdapter);
             // Set on item click listener and create a intent to sent the clicked MovieHolder
