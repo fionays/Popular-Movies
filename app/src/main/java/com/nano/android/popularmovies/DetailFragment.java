@@ -5,9 +5,9 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -29,6 +29,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.youtube.player.YouTubePlayer;
 import com.nano.android.popularmovies.data.FavoritedContract;
 import com.squareup.picasso.Picasso;
 
@@ -47,13 +48,15 @@ public class DetailFragment extends Fragment
     static final String MOVIE = "movie";
 
     private MovieHolder theMovie;
+    private YouTubePlayer YPlayer;
 
     private boolean checked = false;
 
+    @Bind(R.id.app_bar_layout) AppBarLayout appBarLayout;
     @Bind(R.id.collapsing_toolbar_layout)CollapsingToolbarLayout cToolbarLayout;
-    @Bind(R.id.app_bar)Toolbar toolbar;
+    @Bind(R.id.app_bar_detail)Toolbar toolbar;
+    @Bind(R.id.youtube_fragment)ImageView youtubeView;
     @Bind(R.id.nestedScrollView)NestedScrollView nestedScrollView;
-    @Bind(R.id.title)TextView title;
     @Bind(R.id.release_date)TextView release;
     @Bind(R.id.vote_average)TextView vote;
     @Bind(R.id.overview)TextView overView;
@@ -92,8 +95,15 @@ public class DetailFragment extends Fragment
             ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
             ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             cToolbarLayout.setTitle(theMovie.originalTitle);
-            title.setText(theMovie.originalTitle);
-            title.setBackgroundColor(Color.GRAY);
+            // Show toolbar title only when the CollapsingToolbarLayout is at the actionbar height,
+            // set the expanded color for the title to transparent
+            cToolbarLayout.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
+
+            Picasso.with(getActivity()).load(theMovie.posterPath)
+                    .placeholder(R.drawable.image_holder)
+                    .error(R.drawable.image_holder)
+                    .into(youtubeView);
+
             release.setText(theMovie.releaseDate);
             vote.setText(Integer.toString(theMovie.voteAverage));
             overView.setText(theMovie.overview);
@@ -111,6 +121,27 @@ public class DetailFragment extends Fragment
             }
             favCheckBox.setChecked(checked);
             favCheckBox.setOnCheckedChangeListener(this);
+
+//            // YoutubePlayerView
+//            YouTubePlayerSupportFragment youTubePlayerFragment =
+//                    YouTubePlayerSupportFragment.newInstance();
+//            getChildFragmentManager().beginTransaction().add(R.id.youtube_fragment, youTubePlayerFragment).commit();
+//            youTubePlayerFragment.initialize(BuildConfig.YOUTUBE_API_KEY, new YouTubePlayer.OnInitializedListener() {
+//                @Override
+//                public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer player, boolean wasRestored) {
+//                    if (!wasRestored) {
+//                        YPlayer = player;
+//                        YPlayer.setFullscreen(true);
+//                        YPlayer.loadVideo(theMovie.trailers.get(0).key);
+//                        YPlayer.play();
+//                    }
+//                }
+//
+//                @Override
+//                public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+//                    // TODO Auto-generated method
+//                }
+//            });
         }
 
 //        // Restore the scroll view position.

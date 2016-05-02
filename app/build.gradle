@@ -19,6 +19,7 @@ android {
     }
     buildTypes.each {
         it.buildConfigField 'String', 'THE_MOVIE_DB_API_KEY', MyTheMovieDbApiKey
+        it.buildConfigField 'String', 'YOUTUBE_API_KEY', MyYoutubeApiKey
     }
 }
 
@@ -30,6 +31,7 @@ dependencies {
     compile 'com.jakewharton:butterknife:7.0.0'
     compile 'com.android.support:design:23.3.0'
     compile 'com.android.support:appcompat-v7:23.3.0'
+    compile files('libs/YouTubeAndroidPlayerApi.jar')
 }
 
 // Setup Picasso library to handle image loading and caching on your behave
